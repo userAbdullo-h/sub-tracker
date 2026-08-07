@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Payments — Subscriptions & Purchases</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0d12;
+    --bg-glow-1:rgba(91,110,255,.14);
+    --bg-glow-2:rgba(158,91,255,.10);
+    --card:rgba(255,255,255,.035);
+    --card-solid:#14161d;
+    --card-hover:rgba(255,255,255,.055);
+    --border:rgba(255,255,255,.08);
+    --border-strong:rgba(255,255,255,.14);
+    --text:#eef0f6;
+    --muted:#8b93a7;
+    --faint:#5c6375;
+    --accent:#6d8bff;
+    --accent-2:#9e7bff;
+    --green:#34d399;
+    --red:#f87171;
+    --amber:#fbbf24;
+    --radius:16px;
+    --radius-sm:10px;
+    --font:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,'Cascadia Code',monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scrollbar-color:#333a4a var(--bg);}
+  body{
+    background:var(--bg); color:var(--text); font-family:var(--font);
+    min-height:100vh; line-height:1.5;
+    background-image:
+      radial-gradient(900px 480px at 15% -10%, var(--bg-glow-1), transparent 60%),
+      radial-gradient(800px 420px at 90% -5%, var(--bg-glow-2), transparent 55%);
+    background-repeat:no-repeat;
+  }
+  ::selection{background:rgba(109,139,255,.35);}
+  .wrap{max-width:1080px; margin:0 auto; padding:32px 20px 90px;}
+
+  /* ---------- Header ---------- */
+  header{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:28px;}
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand .logo{
+    width:42px; height:42px; border-radius:13px; display:grid; place-items:center; font-size:1.2rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    box-shadow:0 6px 18px rgba(109,139,255,.35);
+  }
+  .brand h1{font-size:1.3rem; font-weight:800; letter-spacing:-.02em;}
+  .brand .tagline{font-size:.78rem; color:var(--muted); margin-top:1px;}
+  nav{
+    display:flex; gap:4px; flex-wrap:wrap; background:var(--card); border:1px solid var(--border);
+    border-radius:999px; padding:4px; backdrop-filter:blur(8px);
+  }
+  nav button{
+    background:transparent; color:var(--muted); border:none; padding:9px 18px; border-radius:999px;
+    cursor:pointer; font-size:.9rem; font-weight:600; font-family:var(--font);
+    transition:color .15s, background .15s;
+  }
+  nav button:hover{color:var(--text);}
+  nav button.active{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff;
+    box-shadow:0 4px 14px rgba(109,139,255,.35);
+  }
+
+  /* ---------- Stat cards ---------- */
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; margin-bottom:26px;}
+  .stat{
+    position:relative; background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:20px; overflow:hidden; backdrop-filter:blur(8px);
+    transition:transform .18s ease, border-color .18s;
+  }
+  .stat:hover{transform:translateY(-2px); border-color:var(--border-strong);}
+  .stat .icon{
+    width:34px; height:34px; border-radius:10px; display:grid; place-items:center; font-size:.95rem;
+    margin-bottom:12px; background:rgba(109,139,255,.14);
+  }
+  .stat.s-warn .icon{background:rgba(251,191,36,.14);}
+  .stat.s-danger .icon{background:rgba(248,113,113,.14);}
+  .stat.s-ok .icon{background:rgba(52,211,153,.14);}
+  .stat .label{color:var(--muted); font-size:.8rem; font-weight:500; margin-bottom:4px;}
+  .stat .value{font-size:1.75rem; font-weight:800; letter-spacing:-.03em; font-family:var(--mono);}
+  .stat .sub{color:var(--faint); font-size:.76rem; margin-top:5px;}
+
+  /* ---------- Sections & items ---------- */
+  section h2{
+    font-size:.78rem; margin:26px 0 12px; color:var(--faint); font-weight:700;
+    text-transform:uppercase; letter-spacing:.12em;
+    display:flex; align-items:center; gap:10px;
+  }
+  section h2::after{content:""; flex:1; height:1px; background:var(--border);}
+  .item{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 18px; margin-bottom:10px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    transition:background .15s, border-color .15s, transform .15s;
+    animation:fadeUp .3s ease both;
+  }
+  .item:hover{background:var(--card-hover); border-color:var(--border-strong);}
+  @keyframes fadeUp{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+  .avatar{
+    width:42px; height:42px; border-radius:12px; display:grid; place-items:center;
+    font-weight:700; font-size:1.05rem; color:#fff; flex-shrink:0;
+    text-shadow:0 1px 2px rgba(0,0,0,.3);
+  }
+  .item .grow{flex:1; min-width:210px;}
+  .item .name{font-weight:600; font-size:.98rem; display:flex; align-items:center; gap:7px; flex-wrap:wrap; letter-spacing:-.01em;}
+  .item .meta{color:var(--muted); font-size:.8rem; margin-top:3px;}
+  .item .amount{text-align:right; min-width:96px;}
+  .item .price{font-weight:700; font-size:1.05rem; font-family:var(--mono); letter-spacing:-.02em;}
+  .item .price.unknown{color:var(--faint);}
+  .item .cycle{color:var(--faint); font-size:.72rem; margin-top:2px;}
+
+  .badge{
+    display:inline-flex; align-items:center; gap:4px; padding:2px 9px; border-radius:999px;
+    font-size:.68rem; font-weight:700; letter-spacing:.02em; white-space:nowrap;
+  }
+  .badge::before{content:""; width:5px; height:5px; border-radius:50%; background:currentColor;}
+  .b-active{background:rgba(52,211,153,.12); color:var(--green);}
+  .b-issue{background:rgba(248,113,113,.13); color:var(--red);}
+  .b-canceled{background:rgba(139,147,167,.13); color:var(--muted);}
+  .b-trial{background:rgba(251,191,36,.13); color:var(--amber);}
+  .b-due{background:rgba(251,191,36,.13); color:var(--amber);}
+  .b-overdue{background:rgba(248,113,113,.16); color:var(--red);}
+  .b-price{background:rgba(109,139,255,.13); color:var(--accent); cursor:default;}
+
+  .actions{display:flex; gap:6px;}
+  .actions button{
+    background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:var(--radius-sm);
+    padding:7px 11px; cursor:pointer; font-size:.78rem; font-weight:600; font-family:var(--font);
+    transition:all .15s;
+  }
+  .actions button:hover{color:var(--text); border-color:var(--border-strong); background:var(--card-hover);}
+  .actions button.paid:hover{color:var(--green); border-color:rgba(52,211,153,.4);}
+  .actions button.del:hover{color:var(--red); border-color:rgba(248,113,113,.4);}
+
+  /* ---------- Buttons & toolbar ---------- */
+  .btn-primary{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; border:none;
+    padding:11px 22px; border-radius:12px; cursor:pointer; font-size:.9rem; font-weight:700; font-family:var(--font);
+    box-shadow:0 4px 16px rgba(109,139,255,.3); transition:transform .15s, box-shadow .15s;
+  }
+  .btn-primary:hover{transform:translateY(-1px); box-shadow:0 6px 22px rgba(109,139,255,.42);}
+  .btn-primary:active{transform:none;}
+  .btn-secondary{
+    background:var(--card); color:var(--text); border:1px solid var(--border); padding:11px 22px;
+    border-radius:12px; cursor:pointer; font-size:.9rem; font-weight:600; font-family:var(--font);
+    transition:background .15s, border-color .15s;
+  }
+  .btn-secondary:hover{background:var(--card-hover); border-color:var(--border-strong);}
+  .toolbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:16px;}
+  .toolbar input[type=search]{
+    flex:1; min-width:200px; background:var(--card); border:1px solid var(--border); color:var(--text);
+    padding:11px 16px; border-radius:12px; font-size:.9rem; font-family:var(--font);
+    transition:border-color .15s;
+  }
+  .toolbar input[type=search]::placeholder{color:var(--faint);}
+  .toolbar input[type=search]:focus{outline:none; border-color:var(--accent);}
+
+  /* ---------- Alerts & banners ---------- */
+  .alert{
+    background:linear-gradient(135deg, rgba(248,113,113,.08), rgba(248,113,113,.03));
+    border:1px solid rgba(248,113,113,.28); border-radius:var(--radius);
+    padding:14px 18px; margin-bottom:10px; display:flex; gap:14px; align-items:flex-start;
+  }
+  .alert .a-icon{
+    width:34px; height:34px; flex-shrink:0; border-radius:10px; display:grid; place-items:center;
+    background:rgba(248,113,113,.15); font-size:.95rem;
+  }
+  .alert .name{font-weight:700; color:var(--red); font-size:.93rem;}
+  .alert .meta{color:var(--muted); font-size:.82rem; margin-top:2px;}
+  .note-banner{
+    background:rgba(109,139,255,.07); border:1px solid rgba(109,139,255,.25); border-radius:var(--radius);
+    padding:13px 18px; margin-bottom:18px; font-size:.86rem; color:var(--muted);
+  }
+  .note-banner b{color:var(--text); font-family:var(--mono);}
+  .empty{
+    color:var(--faint); text-align:center; padding:38px; background:var(--card);
+    border:1px dashed var(--border); border-radius:var(--radius); font-size:.9rem;
+  }
+
+  /* ---------- Dialogs ---------- */
+  dialog{
+    background:var(--card-solid); color:var(--text); border:1px solid var(--border-strong);
+    border-radius:20px; padding:28px; max-width:460px; width:92%;
+    box-shadow:0 24px 60px rgba(0,0,0,.5);
+  }
+  dialog::backdrop{background:rgba(5,6,10,.65); backdrop-filter:blur(4px);}
+  dialog h3{margin-bottom:18px; font-size:1.1rem; font-weight:700; letter-spacing:-.01em;}
+  .field{margin-bottom:13px;}
+  .field label{display:block; font-size:.78rem; font-weight:600; color:var(--muted); margin-bottom:6px;}
+  .field input,.field select,.field textarea{
+    width:100%; background:rgba(255,255,255,.04); border:1px solid var(--border); color:var(--text);
+    padding:10px 13px; border-radius:var(--radius-sm); font-size:.92rem; font-family:var(--font);
+    transition:border-color .15s;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none; border-color:var(--accent);}
+  .field select{appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b93a7'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center;}
+  .field textarea{resize:vertical; min-height:64px;}
+  .dialog-actions{display:flex; gap:10px; justify-content:flex-end; margin-top:20px;}
+
+  footer{color:var(--faint); font-size:.78rem; text-align:center; margin-top:48px;}
+  @media (max-width:620px){
+    .item .amount{text-align:left;}
+    .wrap{padding-top:20px;}
+    header{flex-direction:column; align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">💳</div>
+      <div>
+        <h1>My Payments</h1>
+        <div class="tagline">subscriptions · purchases · renewals</div>
+      </div>
+    </div>
+    <nav>
+      <button data-tab="dashboard" class="active">Dashboard</button>
+      <button data-tab="subs">Subscriptions</button>
+      <button data-tab="purchases">Purchases</button>
+      <button data-tab="settings">Backup</button>
+    </nav>
+  </header>
+
+  <div id="tab-dashboard"></div>
+  <div id="tab-subs" hidden></div>
+  <div id="tab-purchases" hidden></div>
+  <div id="tab-settings" hidden></div>
+
+  <footer>Data is stored locally in your browser (localStorage). Use the Backup tab to export/import.</footer>
+</div>
+
+<dialog id="subDialog">
+  <h3 id="subDialogTitle">Add subscription</h3>
+  <form id="subForm" method="dialog">
+    <div class="field"><label>Name *</label><input name="name" required placeholder="e.g. Netflix"></div>
+    <div class="field"><label>Price (USD) — leave empty if unknown</label><input name="price" type="number" step="0.01" min="0" placeholder="9.99"></div>
+    <div class="field"><label>Billing cycle</label>
+      <select name="cycle">
+        <option value="1">Monthly</option>
+        <option value="3">Every 3 months</option>
+        <option value="6">Every 6 months</option>
+        <option value="12">Yearly</option>
+        <option value="14">Every 14 months</option>
+        <option value="24">Every 2 years</option>
+      </select>
+    </div>
+    <div class="field"><label>Next payment date *</label><input name="nextDate" type="date" required></div>
+    <div class="field"><label>Status</label>
+      <select name="status">
+        <option value="active">Active</option>
+        <option value="payment-issue">Payment issue</option>
+        <option value="trial">Trial</option>
+        <option value="canceled">Canceled</option>
+      </select>
+    </div>
+    <div class="field"><label>Notes</label><textarea name="notes" placeholder="Anything to remember"></textarea></div>
+    <div class="dialog-actions">
+      <button type="button" class="btn-secondary" onclick="subDialog.close()">Cancel</button>
+      <button type="submit" class="btn-primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="purDialog">
+  <h3 id="purDialogTitle">Add purchase</h3>
+  <form id="purForm" method="dialog">
+    <div class="field"><label>What did you buy? *</label><input name="name" required placeholder="e.g. Python course on Udemy"></div>
+    <div class="field"><label>Price (USD) — leave empty if unknown</label><input name="price" type="number" step="0.01" min="0"></div>
+    <div class="field"><label>Date *</label><input name="date" type="date" required></div>
+    <div class="field"><label>Category</label>
+      <select name="category">
+        <option>Course / Lesson</option>
+        <option>Software</option>
+        <option>Game</option>
+        <option>Membership</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="field"><label>Notes</label><textarea name="notes"></textarea></div>
+    <div class="dialog-actions">
+      <button type="button" class="btn-secondary" onclick="purDialog.close()">Cancel</button>
+      <button type="submit" class="btn-primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const SEED_VERSION = 1;
+const seedSubs = [
+  {name:"Claude (Anthropic)", price:112.00, cycle:1, nextDate:"2026-08-25", status:"active", notes:"Billing cycle was reset to Jul 25, 2026 after a late payment. Card failed several times in May–Jul — keep balance on card ending 2390."},
+  {name:"AI Content Accelerator (Skool)", price:19.00, cycle:1, nextDate:"2026-08-29", status:"active", notes:"Last charged Jul 29, 2026 on Visa •2390."},
+  {name:"Chase AI+ (Skool)", price:98.00, cycle:1, nextDate:"2026-07-24", status:"payment-issue", notes:"Jul 24, 2026 charge FAILED. Update the card or cancel the membership — otherwise access may lapse."},
+  {name:"Manus Pro", price:40.00, cycle:1, nextDate:"2026-07-20", status:"payment-issue", notes:"$40 charge failing since Jul 20, 2026 (multiple retries via Stripe). Fix card or cancel."},
+  {name:"Google AI Pro 5TB (Google One)", price:null, cycle:1, nextDate:"2026-08-29", status:"active", notes:"Activated Jul 29, 2026 (previous AI Plus 400GB plan refunded $44.24). Check exact price in Play Store → Subscriptions."},
+  {name:"Proton VPN Plus", price:9.99, cycle:1, nextDate:"2026-08-06", status:"active", notes:"Renews around the 6th each month. First charge attempts often fail — top up card before the 6th."},
+  {name:"Bitdefender Ultimate Security", price:159.99, cycle:12, nextDate:"2026-08-23", status:"active", notes:"AUTO-RENEWS $159.99 via 2Checkout — will be charged up to 15 days BEFORE Aug 23, 2026 (so from ~Aug 8). Cancel in Bitdefender Central → My Subscriptions if you don't want it."},
+  {name:"IObit PRO bundle (6 apps)", price:null, cycle:14, nextDate:"2027-08-12", status:"active", notes:"Driver Booster, Advanced SystemCare, Smart Defrag, Software Updater, Uninstaller, Malware Fighter — 14-month subs bought Jun 12, 2026 via 2Checkout. Check renewal price in emails from order #275032399."},
+  {name:"Duolingo Family Plan", price:null, cycle:12, nextDate:"2027-06-19", status:"active", notes:"Via Google Play, renews Jun 19, 2027. Check price in Play Store → Subscriptions."},
+  {name:"Chess.com (Google Play)", price:22.99, cycle:12, nextDate:"2026-11-25", status:"canceled", notes:"Canceled — access ends Nov 25, 2026, no further charges. Would have been $22.99/yr."},
+  {name:"WordPress.com (userabdullo.link)", price:null, cycle:12, nextDate:"2027-04-06", status:"active", notes:"Renewed Apr 6, 2026 on Visa •2390 (Receipt #116035486). Check amount in that email."},
+  {name:"1Password (Annual, 1 user)", price:35.91, cycle:12, nextDate:"2027-01-14", status:"active", notes:"Charged Jan 14, 2026 → next Jan 14, 2027."},
+  {name:"Vercel", price:null, cycle:1, nextDate:"2026-08-28", status:"active", notes:"Receipts arrive ~28th monthly (Jun 28, Jul 28). Pro plan is typically $20/mo — confirm in receipt email."},
+  {name:"MongoDB Atlas", price:null, cycle:1, nextDate:"2026-08-02", status:"active", notes:"Usage-based billing, invoiced ~2nd of month (Abdullo's Org)."},
+  {name:"Scribd", price:null, cycle:1, nextDate:"2026-08-30", status:"active", notes:"Subscription confirmed Jun 30, 2026. Confirm price (~$11.99/mo) and whether still active."},
+  {name:"Canva Pro", price:null, cycle:1, nextDate:"2026-06-10", status:"payment-issue", notes:"Trial started May 11, 2026; charges failing since Jun 10 (insufficient funds). Probably lapsed — confirm and delete if canceled."}
+];
+const seedPurs = [
+  {name:"Steam purchase (games/items)", price:null, date:"2026-05-15", category:"Game", notes:"Items added to Steam library — check Steam purchase history for amount."},
+  {name:"IObit software order (2 orders)", price:null, date:"2025-09-01", category:"Software", notes:"Orders #260468041 and #260605597 on iobit.com via 2Checkout."},
+  {name:"Galaxy Theme — Retro Monochrome Working Desk", price:null, date:"2025-10-11", category:"Software", notes:"Samsung Galaxy Themes, order 2025101112G69103481."},
+  {name:"Google Play purchase (POMELO TECH)", price:null, date:"2025-10-06", category:"Other", notes:"Order GPA.3301-4562-6547-51089."}
+];
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function load(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; }catch{ return []; } }
+function save(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+let subs = load("pay_subs");
+let purs = load("pay_purs");
+if(!localStorage.getItem("pay_seeded_v"+SEED_VERSION) && subs.length===0 && purs.length===0){
+  subs = seedSubs.map(s=>({id:uid(),...s}));
+  purs = seedPurs.map(p=>({id:uid(),...p}));
+  save("pay_subs",subs); save("pay_purs",purs);
+  localStorage.setItem("pay_seeded_v"+SEED_VERSION,"1");
+}
+
+const fmt = n => n==null ? "?" : "$"+Number(n).toFixed(2);
+const cycleName = m => ({1:"monthly",3:"every 3 mo",6:"every 6 mo",12:"yearly",14:"every 14 mo",24:"every 2 yr"})[m] || "every "+m+" mo";
+const today = () => { const d=new Date(); d.setHours(0,0,0,0); return d; };
+const parseD = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+const fmtD = d => d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
+const daysUntil = s => Math.round((parseD(s)-today())/86400000);
+
+function monthlyCost(s){
+  if(s.price==null || s.status==="canceled") return 0;
+  return s.price / s.cycle;
+}
+
+/* Color-hashed avatar per service name */
+function avatar(name){
+  let h = 0;
+  for(const c of name) h = (h*31 + c.charCodeAt(0)) % 360;
+  const letter = name.trim()[0].toUpperCase();
+  return `<div class="avatar" style="background:linear-gradient(135deg,hsl(${h},62%,52%),hsl(${(h+40)%360},62%,42%))">${letter}</div>`;
+}
+
+function statusBadge(s){
+  if(s.status==="payment-issue") return '<span class="badge b-issue">payment issue</span>';
+  if(s.status==="canceled") return '<span class="badge b-canceled">canceled</span>';
+  if(s.status==="trial") return '<span class="badge b-trial">trial</span>';
+  return '<span class="badge b-active">active</span>';
+}
+function dueBadge(s){
+  if(s.status==="canceled") return "";
+  const d = daysUntil(s.nextDate);
+  if(d < 0) return '<span class="badge b-overdue">overdue '+(-d)+'d</span>';
+  if(d === 0) return '<span class="badge b-overdue">due today</span>';
+  if(d <= 14) return '<span class="badge b-due">in '+d+' days</span>';
+  return "";
+}
+function priceBadge(s){ return s.price==null ? '<span class="badge b-price">set price</span>' : ""; }
+
+/* ---------- Dashboard ---------- */
+function renderDashboard(){
+  const el = document.getElementById("tab-dashboard");
+  const active = subs.filter(s=>s.status!=="canceled");
+  const totalMo = active.reduce((a,s)=>a+monthlyCost(s),0);
+  const unknown = active.filter(s=>s.price==null).length;
+  const upcoming = active.filter(s=>daysUntil(s.nextDate)>=0 && daysUntil(s.nextDate)<=30)
+                         .sort((a,b)=>daysUntil(a.nextDate)-daysUntil(b.nextDate));
+  const due30 = upcoming.reduce((a,s)=>a+(s.price||0),0);
+  const issues = subs.filter(s=>s.status==="payment-issue");
+  const overdue = active.filter(s=>daysUntil(s.nextDate)<0 && s.status!=="payment-issue");
+
+  el.innerHTML = `
+    <div class="cards">
+      <div class="stat"><div class="icon">📊</div><div class="label">Recurring cost / month</div><div class="value">~${fmt(totalMo)}</div>
+        <div class="sub">${unknown? unknown+" subscription(s) missing a price — real total is higher":"across "+active.length+" active subscriptions"}</div></div>
+      <div class="stat s-warn"><div class="icon">📅</div><div class="label">Due in next 30 days</div><div class="value">${fmt(due30)}</div>
+        <div class="sub">${upcoming.length} payment(s) coming up</div></div>
+      <div class="stat s-ok"><div class="icon">🔁</div><div class="label">Active subscriptions</div><div class="value">${active.length}</div>
+        <div class="sub">${subs.length-active.length} canceled</div></div>
+      <div class="stat ${issues.length? "s-danger":"s-ok"}"><div class="icon">${issues.length? "⚠️":"✅"}</div><div class="label">Payment issues</div><div class="value" style="color:${issues.length? 'var(--red)':'var(--green)'}">${issues.length}</div>
+        <div class="sub">${issues.length? "need your attention":"all good"}</div></div>
+    </div>
+    ${issues.length? `<section><h2>Needs attention</h2>${issues.map(s=>`
+      <div class="alert"><div class="a-icon">⚠️</div><div>
+      <div class="name">${esc(s.name)} — ${fmt(s.price)}</div>
+      <div class="meta">${esc(s.notes||"Payment failing")}</div></div></div>`).join("")}</section>`:""}
+    ${overdue.length? `<section><h2>Possibly already charged (date passed)</h2>${overdue.map(itemHTML).join("")}</section>`:""}
+    <section><h2>Upcoming payments — 30 days</h2>
+      ${upcoming.length? upcoming.map(itemHTML).join("") : '<div class="empty">Nothing due in the next 30 days 🎉</div>'}
+    </section>`;
+}
+
+/* ---------- Subscriptions ---------- */
+function itemHTML(s){
+  return `<div class="item">
+    ${avatar(s.name)}
+    <div class="grow">
+      <div class="name">${esc(s.name)} ${statusBadge(s)} ${dueBadge(s)} ${priceBadge(s)}</div>
+      <div class="meta">Next: ${fmtD(parseD(s.nextDate))}${s.notes? " · "+esc(s.notes):""}</div>
+    </div>
+    <div class="amount"><div class="price${s.price==null?' unknown':''}">${fmt(s.price)}</div><div class="cycle">${cycleName(s.cycle)}</div></div>
+    <div class="actions">
+      <button class="paid" onclick="markPaid('${s.id}')" title="Advance next date by one cycle">✓ Paid</button>
+      <button onclick="editSub('${s.id}')">Edit</button>
+      <button class="del" onclick="delSub('${s.id}')">✕</button>
+    </div>
+  </div>`;
+}
+function renderSubs(){
+  const el = document.getElementById("tab-subs");
+  const sorted = [...subs].sort((a,b)=>{
+    if((a.status==="canceled")!==(b.status==="canceled")) return a.status==="canceled"?1:-1;
+    return daysUntil(a.nextDate)-daysUntil(b.nextDate);
+  });
+  el.innerHTML = `
+    <div class="toolbar"><button class="btn-primary" onclick="addSub()">+ Add subscription</button></div>
+    ${sorted.length? sorted.map(itemHTML).join("") : '<div class="empty">No subscriptions yet.</div>'}`;
+}
+
+/* ---------- Purchases ---------- */
+let purQuery = "";
+function renderPurchases(){
+  const el = document.getElementById("tab-purchases");
+  const list = purs.filter(p => (p.name+" "+(p.notes||"")+" "+(p.category||"")).toLowerCase().includes(purQuery.toLowerCase()))
+                   .sort((a,b)=>b.date.localeCompare(a.date));
+  const total = purs.reduce((a,p)=>a+(p.price||0),0);
+  el.innerHTML = `
+    <div class="toolbar">
+      <button class="btn-primary" onclick="addPur()">+ Add purchase</button>
+      <input type="search" placeholder="Search purchases… (check here before buying twice!)" value="${esc(purQuery)}" oninput="purQuery=this.value; renderPurchases();">
+    </div>
+    <div class="note-banner">Total logged one-time spend: <b>${fmt(total)}</b> (${purs.length} items)</div>
+    ${list.length? list.map(p=>`
+      <div class="item">
+        ${avatar(p.name)}
+        <div class="grow">
+          <div class="name">${esc(p.name)} ${p.price==null?'<span class="badge b-price">set price</span>':""}</div>
+          <div class="meta">${fmtD(parseD(p.date))} · ${esc(p.category||"Other")}${p.notes? " · "+esc(p.notes):""}</div>
+        </div>
+        <div class="amount"><div class="price${p.price==null?' unknown':''}">${fmt(p.price)}</div></div>
+        <div class="actions">
+          <button onclick="editPur('${p.id}')">Edit</button>
+          <button class="del" onclick="delPur('${p.id}')">✕</button>
+        </div>
+      </div>`).join("") : '<div class="empty">No purchases found.</div>'}`;
+}
+
+/* ---------- Backup ---------- */
+function renderSettings(){
+  const el = document.getElementById("tab-settings");
+  el.innerHTML = `
+    <div class="note-banner">Your data lives only in this browser. Export a backup file once in a while, or before clearing browser data.</div>
+    <div class="toolbar">
+      <button class="btn-primary" onclick="exportData()">⬇ Export backup (JSON)</button>
+      <button class="btn-secondary" onclick="importFile.click()">⬆ Import backup</button>
+      <input type="file" id="importFile" accept=".json" hidden onchange="importData(this)">
+    </div>`;
+}
+function exportData(){
+  const blob = new Blob([JSON.stringify({subs,purs},null,2)],{type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "payments-backup-"+new Date().toISOString().slice(0,10)+".json";
+  a.click();
+}
+function importData(input){
+  const f = input.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const data = JSON.parse(r.result);
+      if(!Array.isArray(data.subs) || !Array.isArray(data.purs)) throw 0;
+      if(confirm("Replace current data with backup ("+data.subs.length+" subs, "+data.purs.length+" purchases)?")){
+        subs = data.subs; purs = data.purs;
+        save("pay_subs",subs); save("pay_purs",purs); renderAll();
+      }
+    }catch{ alert("Invalid backup file."); }
+  };
+  r.readAsText(f);
+}
+
+/* ---------- CRUD ---------- */
+const subDialog = document.getElementById("subDialog");
+const purDialog = document.getElementById("purDialog");
+let editingSub = null, editingPur = null;
+
+function addSub(){ editingSub=null; subDialogTitle.textContent="Add subscription"; subForm.reset();
+  subForm.nextDate.value = new Date().toISOString().slice(0,10); subDialog.showModal(); }
+function editSub(id){ const s=subs.find(x=>x.id===id); if(!s)return; editingSub=id;
+  subDialogTitle.textContent="Edit subscription";
+  subForm.name.value=s.name; subForm.price.value=s.price??""; subForm.cycle.value=s.cycle;
+  subForm.nextDate.value=s.nextDate; subForm.status.value=s.status; subForm.notes.value=s.notes||"";
+  subDialog.showModal(); }
+function delSub(id){ const s=subs.find(x=>x.id===id);
+  if(s && confirm("Delete \""+s.name+"\"?")){ subs=subs.filter(x=>x.id!==id); save("pay_subs",subs); renderAll(); } }
+function markPaid(id){ const s=subs.find(x=>x.id===id); if(!s)return;
+  const d=parseD(s.nextDate); d.setMonth(d.getMonth()+Number(s.cycle));
+  s.nextDate = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  save("pay_subs",subs); renderAll(); }
+subForm.addEventListener("submit",()=>{
+  const f=subForm, rec={ name:f.name.value.trim(), price:f.price.value===""?null:Number(f.price.value),
+    cycle:Number(f.cycle.value), nextDate:f.nextDate.value, status:f.status.value, notes:f.notes.value.trim() };
+  if(editingSub){ Object.assign(subs.find(x=>x.id===editingSub),rec); } else { subs.push({id:uid(),...rec}); }
+  save("pay_subs",subs); renderAll();
+});
+
+function addPur(){ editingPur=null; purDialogTitle.textContent="Add purchase"; purForm.reset();
+  purForm.date.value = new Date().toISOString().slice(0,10); purDialog.showModal(); }
+function editPur(id){ const p=purs.find(x=>x.id===id); if(!p)return; editingPur=id;
+  purDialogTitle.textContent="Edit purchase";
+  purForm.name.value=p.name; purForm.price.value=p.price??""; purForm.date.value=p.date;
+  purForm.category.value=p.category||"Other"; purForm.notes.value=p.notes||"";
+  purDialog.showModal(); }
+function delPur(id){ const p=purs.find(x=>x.id===id);
+  if(p && confirm("Delete \""+p.name+"\"?")){ purs=purs.filter(x=>x.id!==id); save("pay_purs",purs); renderAll(); } }
+purForm.addEventListener("submit",()=>{
+  const f=purForm, rec={ name:f.name.value.trim(), price:f.price.value===""?null:Number(f.price.value),
+    date:f.date.value, category:f.category.value, notes:f.notes.value.trim() };
+  if(editingPur){ Object.assign(purs.find(x=>x.id===editingPur),rec); } else { purs.push({id:uid(),...rec}); }
+  save("pay_purs",purs); renderAll();
+});
+
+/* ---------- Tabs & helpers ---------- */
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  ["dashboard","subs","purchases","settings"].forEach(t=>{
+    document.getElementById("tab-"+t).hidden = t!==b.dataset.tab;
+  });
+}));
+function renderAll(){ renderDashboard(); renderSubs(); renderPurchases(); renderSettings(); }
+renderAll();
+</script>
+</body>
+</html>

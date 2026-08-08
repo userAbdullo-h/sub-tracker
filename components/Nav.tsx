@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import ThemeToggle from "./ThemeToggle";
 
 const tabs = [
   { href: "/", label: "Dashboard" },
@@ -27,6 +28,7 @@ export default function Nav() {
             {t.label}
           </Link>
         ))}
+        <ThemeToggle />
       </nav>
     </header>
   );

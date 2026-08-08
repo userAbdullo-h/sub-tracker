@@ -35,10 +35,24 @@ export default async function Dashboard() {
   return (
     <div className="wrap">
       <Nav />
-      <div className="page-head">
-        <h2>Overview</h2>
-        <div className="sub">Your money at a glance — updated {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}</div>
-      </div>
+      <section className="hero">
+        <div className="hero-copy">
+          <div className="hello">
+            {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+          </div>
+          <h2>
+            Your money, <em>on autopilot</em>.
+          </h2>
+          <p>
+            {issues.length > 0 ? (
+              <>You have <b>{issues.length} payment issue{issues.length > 1 ? "s" : ""}</b> and <b>{fmtMoney(due30)}</b> due in the next 30 days.</>
+            ) : (
+              <>All payments healthy — <b>{fmtMoney(due30)}</b> due in the next 30 days.</>
+            )}
+          </p>
+          <Link href="/subscriptions" className="btn-primary">Review subscriptions</Link>
+        </div>
+      </section>
       <div className="cards">
         <div className="stat">
           <div className="icon">📊</div>

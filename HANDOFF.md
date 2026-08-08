@@ -34,7 +34,7 @@
 ## Not in git (transfer manually if needed)
 
 - `.env.local` — recreate from `.env.example` (dev values are trivial; see README)
-- `data/dev-db.json` — the actual live data while in file-mode; export a JSON backup from Settings, or copy the file
+- **`data/` folder — copy it whole to the new PC**: contains `dev-db.json` (live data), `receipts/` (uploaded receipt files), and dated backup exports (e.g. `paypilot-backup-2026-08-08.json`, restorable via Settings → Import)
 - Claude auto-memory is machine-local — this file replaces it cross-machine
 
 ## Owner's blocking TODOs (before/during next phases)

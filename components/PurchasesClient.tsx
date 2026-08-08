@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 import Logo from "@/components/Logo";
 import { inferVendor, PURCHASE_ICON } from "@/lib/vendors";
@@ -126,7 +127,7 @@ export default function PurchasesClient({ initial }: { initial: Purchase[] }) {
                 <div className="card-top">
                   <Logo name={p.name} domain={inferVendor(p.name).domain} category={p.category} kind="purchase" />
                   <div className="who">
-                    <div className="name">{p.name}</div>
+                    <Link href={`/purchases/${p.id}`} className="name name-link">{p.name}</Link>
                     <div className="cat">{p.category}</div>
                   </div>
                 </div>

@@ -24,6 +24,28 @@ export function monthlyCost(s: Subscription): number {
   return s.price / s.cycleMonths;
 }
 
+/**
+ * Payment stage traffic light:
+ *  red    — payment failed or the due date has passed without a confirmed payment
+ *  yellow — due within the next 5 days
+ *  green  — a payment was confirmed within the last 3 days
+ *  normal — nothing needs attention
+ */
+export type Stage = "red" | "yellow" | "green" | "normal";
+
+export function stageOf(s: Subscription): Stage {
+  if (s.status === "canceled") return "normal";
+  if (s.status === "payment-issue") return "red";
+  const d = daysUntil(s.nextDate);
+  if (d < 0) return "red";
+  if (d <= 5) return "yellow";
+  if (s.lastPaidAt) {
+    const paidAgo = -daysUntil(s.lastPaidAt);
+    if (paidAgo >= 0 && paidAgo <= 3) return "green";
+  }
+  return "normal";
+}
+
 export function advanceDate(dateStr: string, months: number): string {
   const [y, m, d] = dateStr.split("-").map(Number);
   const date = new Date(y, m - 1, d);

@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getRepo } from "@/lib/db";
 import { requireUser } from "@/lib/session";
@@ -17,8 +18,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       const subs = await repo.listSubscriptions();
       const sub = subs.find((s) => s.id === id);
       if (!sub) return NextResponse.json({ error: "not found" }, { status: 404 });
+      const today = new Date().toISOString().slice(0, 10);
       const updated = await repo.updateSubscription(id, {
         nextDate: advanceDate(sub.nextDate, sub.cycleMonths),
+        lastPaidAt: today,
+        status: sub.status === "payment-issue" ? "active" : sub.status,
+        receipts: [
+          ...(sub.receipts ?? []),
+          { id: randomUUID(), date: today, amount: sub.price, note: "Marked as paid" },
+        ],
       });
       return NextResponse.json(updated);
     }

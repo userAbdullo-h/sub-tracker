@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { StatusBadge, DueBadge } from "@/components/bits";
 import Logo from "@/components/Logo";
-import { fmtMoney, fmtDate, cycleName, daysUntil, monthlyCost } from "@/lib/calc";
+import { fmtMoney, fmtDate, cycleName, daysUntil, monthlyCost, stageOf } from "@/lib/calc";
 import { CATEGORIES, CATEGORY_ICONS } from "@/lib/vendors";
 import type { Subscription, SubscriptionInput, SubStatus } from "@/lib/types";
 
@@ -111,6 +112,12 @@ export default function SubscriptionsClient({ initial }: { initial: Subscription
 
       <div className="toolbar">
         <button className="btn-primary" onClick={openAdd}>+ Add subscription</button>
+        <div className="legend">
+          <span><i className="dot d-red" /> overdue / failed</span>
+          <span><i className="dot d-yellow" /> due ≤ 5 days</span>
+          <span><i className="dot d-green" /> paid recently</span>
+          <span><i className="dot d-normal" /> all good</span>
+        </div>
       </div>
 
       {subs.length === 0 && <div className="empty">No subscriptions yet.</div>}
@@ -131,12 +138,12 @@ export default function SubscriptionsClient({ initial }: { initial: Subscription
             {list.map((sub) => (
               <div
                 key={sub.id}
-                className={`sub-card${sub.status === "payment-issue" ? " issue" : ""}${sub.status === "canceled" ? " muted-card" : ""}`}
+                className={`sub-card stage-${stageOf(sub)}${sub.status === "canceled" ? " muted-card" : ""}`}
               >
                 <div className="card-top">
                   <Logo name={sub.name} domain={sub.logoDomain} category={sub.category} />
                   <div className="who">
-                    <div className="name">{sub.name}</div>
+                    <Link href={`/subscriptions/${sub.id}`} className="name name-link">{sub.name}</Link>
                     <div className="cat">{cycleName(sub.cycleMonths)}</div>
                   </div>
                   <StatusBadge status={sub.status} />

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Logo from "@/components/Logo";
-import { inferVendor } from "@/lib/vendors";
+import { inferVendor, PURCHASE_ICON } from "@/lib/vendors";
 import { fmtMoney, fmtDate } from "@/lib/calc";
 import type { Purchase, PurchaseInput } from "@/lib/types";
 
@@ -26,6 +26,21 @@ export default function PurchasesClient({ initial }: { initial: Purchase[] }) {
     .filter((p) => `${p.name} ${p.notes} ${p.category}`.toLowerCase().includes(query.toLowerCase()))
     .sort((a, b) => b.date.localeCompare(a.date));
   const total = purs.reduce((a, p) => a + (p.price ?? 0), 0);
+
+  // Group filtered list by category, ordered by total spend then count
+  const groups = new Map<string, Purchase[]>();
+  for (const p of list) {
+    const cat = p.category || "Other";
+    if (!groups.has(cat)) groups.set(cat, []);
+    groups.get(cat)!.push(p);
+  }
+  const orderedGroups = [...groups.entries()]
+    .map(([cat, items]) => ({
+      cat,
+      items,
+      spend: items.reduce((a, p) => a + (p.price ?? 0), 0),
+    }))
+    .sort((a, b) => b.spend - a.spend || b.items.length - a.items.length);
 
   function openAdd() {
     setEditingId(null);
@@ -93,37 +108,51 @@ export default function PurchasesClient({ initial }: { initial: Purchase[] }) {
 
       {list.length === 0 && <div className="empty">No purchases found.</div>}
 
-      <div className="card-grid">
-        {list.map((p) => (
-          <div className="sub-card" key={p.id}>
-            <div className="card-top">
-              <Logo name={p.name} domain={inferVendor(p.name).domain} category={p.category} kind="purchase" />
-              <div className="who">
-                <div className="name">{p.name}</div>
-                <div className="cat">{p.category}</div>
-              </div>
-            </div>
-
-            <div className="price-line">
-              <span className={`p${p.price == null ? " unknown" : ""}`}>{fmtMoney(p.price)}</span>
-              {p.price == null && (
-                <button className="badge b-price" onClick={() => openEdit(p)}>+ set price</button>
-              )}
-            </div>
-
-            <div className="next-line">
-              <span>Bought {fmtDate(p.date)}</span>
-            </div>
-
-            {p.notes && <div className="notes" title={p.notes}>{p.notes}</div>}
-
-            <div className="card-foot">
-              <button onClick={() => openEdit(p)}>Edit</button>
-              <button className="del" onClick={() => remove(p)}>✕</button>
-            </div>
+      {orderedGroups.map(({ cat, items, spend }) => (
+        <section key={cat}>
+          <div className="cat-head">
+            {PURCHASE_ICON[cat] && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={PURCHASE_ICON[cat]} alt="" />
+            )}
+            <span className="t">{cat}</span>
+            <span className="m">
+              {items.length} · {spend > 0 ? fmtMoney(spend) : "—"}
+            </span>
           </div>
-        ))}
-      </div>
+          <div className="card-grid">
+            {items.map((p) => (
+              <div className="sub-card" key={p.id}>
+                <div className="card-top">
+                  <Logo name={p.name} domain={inferVendor(p.name).domain} category={p.category} kind="purchase" />
+                  <div className="who">
+                    <div className="name">{p.name}</div>
+                    <div className="cat">{p.category}</div>
+                  </div>
+                </div>
+
+                <div className="price-line">
+                  <span className={`p${p.price == null ? " unknown" : ""}`}>{fmtMoney(p.price)}</span>
+                  {p.price == null && (
+                    <button className="badge b-price" onClick={() => openEdit(p)}>+ set price</button>
+                  )}
+                </div>
+
+                <div className="next-line">
+                  <span>Bought {fmtDate(p.date)}</span>
+                </div>
+
+                {p.notes && <div className="notes" title={p.notes}>{p.notes}</div>}
+
+                <div className="card-foot">
+                  <button onClick={() => openEdit(p)}>Edit</button>
+                  <button className="del" onClick={() => remove(p)}>✕</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
 
       <dialog ref={dialogRef}>
         <h3>{editingId ? "Edit purchase" : "Add purchase"}</h3>

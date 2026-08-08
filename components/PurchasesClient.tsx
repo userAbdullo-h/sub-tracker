@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Avatar } from "@/components/bits";
+import Logo from "@/components/Logo";
+import { inferVendor } from "@/lib/vendors";
 import { fmtMoney, fmtDate } from "@/lib/calc";
 import type { Purchase, PurchaseInput } from "@/lib/types";
 
@@ -96,7 +97,7 @@ export default function PurchasesClient({ initial }: { initial: Purchase[] }) {
         {list.map((p) => (
           <div className="sub-card" key={p.id}>
             <div className="card-top">
-              <Avatar name={p.name} />
+              <Logo name={p.name} domain={inferVendor(p.name).domain} category={p.category} kind="purchase" />
               <div className="who">
                 <div className="name">{p.name}</div>
                 <div className="cat">{p.category}</div>

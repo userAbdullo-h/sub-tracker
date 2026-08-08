@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import type { Subscription, SubscriptionInput, Purchase, PurchaseInput } from "./types";
 import { seedSubscriptions, seedPurchases } from "./seed";
+import { normalizeSub } from "./vendors";
 
 export interface Repo {
   listSubscriptions(): Promise<Subscription[]>;
@@ -44,10 +45,10 @@ class FileRepo implements Repo {
     fs.writeFileSync(this.file, JSON.stringify(this.cache, null, 2), "utf-8");
   }
 
-  async listSubscriptions() { return [...this.read().subscriptions]; }
+  async listSubscriptions() { return this.read().subscriptions.map(normalizeSub); }
 
   async createSubscription(input: SubscriptionInput) {
-    const sub: Subscription = { ...input, id: randomUUID(), createdAt: now(), updatedAt: now() };
+    const sub: Subscription = normalizeSub({ ...input, id: randomUUID(), createdAt: now(), updatedAt: now() });
     this.read().subscriptions.push(sub);
     this.write();
     return sub;
@@ -58,7 +59,7 @@ class FileRepo implements Repo {
     if (!sub) return null;
     Object.assign(sub, patch, { updatedAt: now() });
     this.write();
-    return sub;
+    return normalizeSub(sub);
   }
 
   async deleteSubscription(id: string) {
@@ -140,11 +141,11 @@ class MongoRepo implements Repo {
 
   async listSubscriptions() {
     const col = await this.subsCol();
-    return (await col.find().toArray()).map((d) => this.strip<Subscription>(d)!) ;
+    return (await col.find().toArray()).map((d) => normalizeSub(this.strip<Subscription>(d)!));
   }
 
   async createSubscription(input: SubscriptionInput) {
-    const sub: Subscription = { ...input, id: randomUUID(), createdAt: now(), updatedAt: now() };
+    const sub: Subscription = normalizeSub({ ...input, id: randomUUID(), createdAt: now(), updatedAt: now() });
     await (await this.subsCol()).insertOne({ ...sub });
     return sub;
   }
@@ -156,7 +157,8 @@ class MongoRepo implements Repo {
       { $set: { ...patch, updatedAt: now() } },
       { returnDocument: "after" }
     );
-    return this.strip<Subscription>(res);
+    const stripped = this.strip<Subscription>(res);
+    return stripped ? normalizeSub(stripped) : null;
   }
 
   async deleteSubscription(id: string) {

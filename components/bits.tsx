@@ -1,20 +1,6 @@
 import type { Subscription } from "@/lib/types";
 import { daysUntil } from "@/lib/calc";
 
-/** Color-hashed avatar tile per service name */
-export function Avatar({ name }: { name: string }) {
-  let h = 0;
-  for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 360;
-  return (
-    <div
-      className="avatar"
-      style={{ background: `linear-gradient(135deg, hsl(${h},62%,52%), hsl(${(h + 40) % 360},62%,42%))` }}
-    >
-      {name.trim()[0]?.toUpperCase() ?? "?"}
-    </div>
-  );
-}
-
 export function StatusBadge({ status }: { status: Subscription["status"] }) {
   if (status === "payment-issue") return <span className="badge b-issue">payment issue</span>;
   if (status === "canceled") return <span className="badge b-canceled">canceled</span>;

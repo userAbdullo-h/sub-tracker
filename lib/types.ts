@@ -8,6 +8,8 @@ export interface Subscription {
   nextDate: string; // YYYY-MM-DD
   status: SubStatus;
   notes: string;
+  category?: string; // one of lib/vendors CATEGORIES; auto-inferred when missing
+  logoDomain?: string; // real service domain used for favicon logo; auto-inferred
   createdAt: string;
   updatedAt: string;
 }

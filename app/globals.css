@@ -225,13 +225,31 @@ section:not(.hero) h2::after{content:""; flex:1; height:1px; background:var(--bo
 .card-foot button.del{flex:0 0 auto; width:36px;}
 .card-foot button.del:hover{color:var(--red); border-color:var(--red);}
 
-/* ---------- Avatar ---------- */
+/* ---------- Avatar / logo tiles ---------- */
 .avatar{
   width:38px; height:38px; border-radius:11px; display:grid; place-items:center;
   font-weight:700; font-size:.95rem; color:#fff; flex-shrink:0;
   text-shadow:0 1px 2px rgba(0,0,0,.25);
   box-shadow:inset 0 -6px 12px rgba(0,0,0,.18), 0 4px 10px -3px rgba(24,28,45,.3);
 }
+.logo-tile{
+  background:#fff; border:1px solid var(--border);
+  box-shadow:var(--shadow-card); text-shadow:none; overflow:hidden;
+}
+.logo-tile img{width:22px; height:22px; object-fit:contain;}
+.logo-tile.icon-tile{background:transparent; border:none; box-shadow:none;}
+.logo-tile.icon-tile img{width:38px; height:38px; border-radius:11px; object-fit:cover;}
+:root[data-theme="dark"] .logo-tile{background:#f2f3f7;}
+:root[data-theme="dark"] .logo-tile.icon-tile{background:transparent;}
+
+/* ---------- Category sections ---------- */
+.cat-head{
+  display:flex; align-items:center; gap:10px; margin:28px 0 14px;
+}
+.cat-head img{width:34px; height:34px; border-radius:10px; object-fit:cover; box-shadow:var(--shadow-card);}
+.cat-head .t{font-size:1.02rem; font-weight:800; letter-spacing:-.015em;}
+.cat-head .m{color:var(--faint); font-size:.8rem; font-variant-numeric:tabular-nums;}
+.cat-head::after{content:""; flex:1; height:1px; background:var(--border);}
 
 /* ---------- Badges ---------- */
 .badge{

@@ -1,8 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Avatar, StatusBadge, DueBadge } from "@/components/bits";
+import { StatusBadge, DueBadge } from "@/components/bits";
+import Logo from "@/components/Logo";
 import { fmtMoney, fmtDate, cycleName, daysUntil, monthlyCost } from "@/lib/calc";
+import { CATEGORIES, CATEGORY_ICONS } from "@/lib/vendors";
 import type { Subscription, SubscriptionInput, SubStatus } from "@/lib/types";
 
 const emptyForm: SubscriptionInput = {
@@ -12,6 +14,7 @@ const emptyForm: SubscriptionInput = {
   nextDate: new Date().toISOString().slice(0, 10),
   status: "active",
   notes: "",
+  category: "Other",
 };
 
 export default function SubscriptionsClient({ initial }: { initial: Subscription[] }) {
@@ -21,13 +24,26 @@ export default function SubscriptionsClient({ initial }: { initial: Subscription
   const [busy, setBusy] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  const sorted = [...subs].sort((a, b) => {
-    if ((a.status === "canceled") !== (b.status === "canceled")) return a.status === "canceled" ? 1 : -1;
-    return daysUntil(a.nextDate) - daysUntil(b.nextDate);
-  });
-
   const activeCount = subs.filter((s) => s.status !== "canceled").length;
   const totalMo = subs.reduce((a, s) => a + monthlyCost(s), 0);
+
+  // Group by category, categories ordered by monthly spend (unknown-price groups keep their position by count)
+  const groups = new Map<string, Subscription[]>();
+  for (const s of subs) {
+    const cat = s.category ?? "Other";
+    if (!groups.has(cat)) groups.set(cat, []);
+    groups.get(cat)!.push(s);
+  }
+  const orderedGroups = [...groups.entries()]
+    .map(([cat, list]) => ({
+      cat,
+      list: list.sort((a, b) => {
+        if ((a.status === "canceled") !== (b.status === "canceled")) return a.status === "canceled" ? 1 : -1;
+        return daysUntil(a.nextDate) - daysUntil(b.nextDate);
+      }),
+      spend: list.reduce((a, s) => a + monthlyCost(s), 0),
+    }))
+    .sort((a, b) => b.spend - a.spend || b.list.length - a.list.length);
 
   function openAdd() {
     setEditingId(null);
@@ -37,7 +53,7 @@ export default function SubscriptionsClient({ initial }: { initial: Subscription
 
   function openEdit(sub: Subscription) {
     setEditingId(sub.id);
-    setForm({ name: sub.name, price: sub.price, cycleMonths: sub.cycleMonths, nextDate: sub.nextDate, status: sub.status, notes: sub.notes });
+    setForm({ name: sub.name, price: sub.price, cycleMonths: sub.cycleMonths, nextDate: sub.nextDate, status: sub.status, notes: sub.notes, category: sub.category ?? "Other" });
     dialogRef.current?.showModal();
   }
 
@@ -97,46 +113,60 @@ export default function SubscriptionsClient({ initial }: { initial: Subscription
         <button className="btn-primary" onClick={openAdd}>+ Add subscription</button>
       </div>
 
-      {sorted.length === 0 && <div className="empty">No subscriptions yet.</div>}
+      {subs.length === 0 && <div className="empty">No subscriptions yet.</div>}
 
-      <div className="card-grid">
-        {sorted.map((sub) => (
-          <div
-            key={sub.id}
-            className={`sub-card${sub.status === "payment-issue" ? " issue" : ""}${sub.status === "canceled" ? " muted-card" : ""}`}
-          >
-            <div className="card-top">
-              <Avatar name={sub.name} />
-              <div className="who">
-                <div className="name">{sub.name}</div>
-                <div className="cat">{cycleName(sub.cycleMonths)}</div>
-              </div>
-              <StatusBadge status={sub.status} />
-            </div>
-
-            <div className="price-line">
-              <span className={`p${sub.price == null ? " unknown" : ""}`}>{fmtMoney(sub.price)}</span>
-              <span className="per">/ {cycleName(sub.cycleMonths).replace("every ", "")}</span>
-              {sub.price == null && (
-                <button className="badge b-price" onClick={() => openEdit(sub)}>+ set price</button>
-              )}
-            </div>
-
-            <div className="next-line">
-              <span>Renews {fmtDate(sub.nextDate)}</span>
-              <DueBadge sub={sub} />
-            </div>
-
-            {sub.notes && <div className="notes" title={sub.notes}>{sub.notes}</div>}
-
-            <div className="card-foot">
-              <button className="paid" title="Advance next date by one cycle" onClick={() => markPaid(sub.id)}>✓ Paid</button>
-              <button onClick={() => openEdit(sub)}>Edit</button>
-              <button className="del" onClick={() => remove(sub)}>✕</button>
-            </div>
+      {orderedGroups.map(({ cat, list, spend }) => (
+        <section key={cat}>
+          <div className="cat-head">
+            {CATEGORY_ICONS[cat] && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={CATEGORY_ICONS[cat]} alt="" />
+            )}
+            <span className="t">{cat}</span>
+            <span className="m">
+              {list.length} · {spend > 0 ? `~${fmtMoney(spend)}/mo` : "—"}
+            </span>
           </div>
-        ))}
-      </div>
+          <div className="card-grid">
+            {list.map((sub) => (
+              <div
+                key={sub.id}
+                className={`sub-card${sub.status === "payment-issue" ? " issue" : ""}${sub.status === "canceled" ? " muted-card" : ""}`}
+              >
+                <div className="card-top">
+                  <Logo name={sub.name} domain={sub.logoDomain} category={sub.category} />
+                  <div className="who">
+                    <div className="name">{sub.name}</div>
+                    <div className="cat">{cycleName(sub.cycleMonths)}</div>
+                  </div>
+                  <StatusBadge status={sub.status} />
+                </div>
+
+                <div className="price-line">
+                  <span className={`p${sub.price == null ? " unknown" : ""}`}>{fmtMoney(sub.price)}</span>
+                  <span className="per">/ {cycleName(sub.cycleMonths).replace("every ", "")}</span>
+                  {sub.price == null && (
+                    <button className="badge b-price" onClick={() => openEdit(sub)}>+ set price</button>
+                  )}
+                </div>
+
+                <div className="next-line">
+                  <span>Renews {fmtDate(sub.nextDate)}</span>
+                  <DueBadge sub={sub} />
+                </div>
+
+                {sub.notes && <div className="notes" title={sub.notes}>{sub.notes}</div>}
+
+                <div className="card-foot">
+                  <button className="paid" title="Advance next date by one cycle" onClick={() => markPaid(sub.id)}>✓ Paid</button>
+                  <button onClick={() => openEdit(sub)}>Edit</button>
+                  <button className="del" onClick={() => remove(sub)}>✕</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
 
       <dialog ref={dialogRef}>
         <h3>{editingId ? "Edit subscription" : "Add subscription"}</h3>
@@ -151,6 +181,14 @@ export default function SubscriptionsClient({ initial }: { initial: Subscription
             <input type="number" step="0.01" min="0" placeholder="9.99"
               value={form.price ?? ""}
               onChange={(e) => setForm({ ...form, price: e.target.value === "" ? null : Number(e.target.value) })} />
+          </div>
+          <div className="field">
+            <label>Category</label>
+            <select value={form.category ?? "Other"} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
           </div>
           <div className="field">
             <label>Billing cycle</label>

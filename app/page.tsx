@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Nav from "@/components/Nav";
-import { Avatar, StatusBadge, DueBadge, PriceBadge } from "@/components/bits";
+import Logo from "@/components/Logo";
+import { StatusBadge, DueBadge, PriceBadge } from "@/components/bits";
 import { getRepo } from "@/lib/db";
 import { dashboardStats, fmtMoney, fmtDate, cycleName } from "@/lib/calc";
 import type { Subscription } from "@/lib/types";
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 function Row({ sub }: { sub: Subscription }) {
   return (
     <Link href="/subscriptions" className="item">
-      <Avatar name={sub.name} />
+      <Logo name={sub.name} domain={sub.logoDomain} category={sub.category} />
       <div className="grow">
         <div className="name">
           {sub.name} <StatusBadge status={sub.status} /> <DueBadge sub={sub} /> <PriceBadge price={sub.price} />

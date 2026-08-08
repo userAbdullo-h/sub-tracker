@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Avatar, PriceBadge } from "@/components/bits";
+import { Avatar } from "@/components/bits";
 import { fmtMoney, fmtDate } from "@/lib/calc";
 import type { Purchase, PurchaseInput } from "@/lib/types";
 
@@ -73,6 +73,13 @@ export default function PurchasesClient({ initial }: { initial: Purchase[] }) {
 
   return (
     <>
+      <div className="page-head">
+        <h2>Purchases</h2>
+        <div className="sub">
+          <b>{purs.length}</b> items · logged one-time spend <b>{fmtMoney(total)}</b>
+        </div>
+      </div>
+
       <div className="toolbar">
         <button className="btn-primary" onClick={openAdd}>+ Add purchase</button>
         <input
@@ -83,32 +90,39 @@ export default function PurchasesClient({ initial }: { initial: Purchase[] }) {
         />
       </div>
 
-      <div className="note-banner">
-        Total logged one-time spend: <b>{fmtMoney(total)}</b> ({purs.length} items)
-      </div>
-
       {list.length === 0 && <div className="empty">No purchases found.</div>}
-      {list.map((p) => (
-        <div className="item" key={p.id}>
-          <Avatar name={p.name} />
-          <div className="grow">
-            <div className="name">
-              {p.name} <PriceBadge price={p.price} />
+
+      <div className="card-grid">
+        {list.map((p) => (
+          <div className="sub-card" key={p.id}>
+            <div className="card-top">
+              <Avatar name={p.name} />
+              <div className="who">
+                <div className="name">{p.name}</div>
+                <div className="cat">{p.category}</div>
+              </div>
             </div>
-            <div className="meta">
-              {fmtDate(p.date)} · {p.category}
-              {p.notes ? ` · ${p.notes}` : ""}
+
+            <div className="price-line">
+              <span className={`p${p.price == null ? " unknown" : ""}`}>{fmtMoney(p.price)}</span>
+              {p.price == null && (
+                <button className="badge b-price" onClick={() => openEdit(p)}>+ set price</button>
+              )}
+            </div>
+
+            <div className="next-line">
+              <span>Bought {fmtDate(p.date)}</span>
+            </div>
+
+            {p.notes && <div className="notes" title={p.notes}>{p.notes}</div>}
+
+            <div className="card-foot">
+              <button onClick={() => openEdit(p)}>Edit</button>
+              <button className="del" onClick={() => remove(p)}>✕</button>
             </div>
           </div>
-          <div className="amount">
-            <div className={`price${p.price == null ? " unknown" : ""}`}>{fmtMoney(p.price)}</div>
-          </div>
-          <div className="actions">
-            <button onClick={() => openEdit(p)}>Edit</button>
-            <button className="del" onClick={() => remove(p)}>✕</button>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       <dialog ref={dialogRef}>
         <h3>{editingId ? "Edit purchase" : "Add purchase"}</h3>

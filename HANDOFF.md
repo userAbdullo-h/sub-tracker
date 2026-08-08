@@ -57,4 +57,5 @@ subject:(receipt OR invoice), "your subscription" OR "renews on", sender-specifi
 
 - **2026-07-30:** Gmail scan → built v0 `index.html`, then visual redesign (Inter/JetBrains Mono, avatars, glassy dark UI).
 - **2026-07-31:** Pivot decision → SPEC.md drafted → +Phase 5 (token monitor) → +existing-bot reuse + custom notification rules.
-- **2026-08-07:** Phase 1 scaffolded, built, browser-verified. README + this handoff written.
+- **2026-08-07:** Phase 1 scaffolded, built, browser-verified. README + this handoff written. Pushed to github.com/userAbdullo-h/sub-tracker.
+- **2026-08-08:** Premium UI redesign — card grids for subscriptions/purchases (.card-grid/.sub-card), refined design tokens (solid surfaces, single accent, tabular numbers), page headers, clickable "+ set price" badge opens the edit dialog. Verified desktop + mobile. Also confirmed Higgsfield MCP exposes balance/transactions (noted in SPEC.md Phase 5). Owner deleted Manus Pro from their data. Next: Phase 2 (Gmail scan) — waiting on owner's Google OAuth credentials.

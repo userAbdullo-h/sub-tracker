@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Avatar, StatusBadge, DueBadge, PriceBadge } from "@/components/bits";
-import { fmtMoney, fmtDate, cycleName, daysUntil } from "@/lib/calc";
+import { Avatar, StatusBadge, DueBadge } from "@/components/bits";
+import { fmtMoney, fmtDate, cycleName, daysUntil, monthlyCost } from "@/lib/calc";
 import type { Subscription, SubscriptionInput, SubStatus } from "@/lib/types";
 
 const emptyForm: SubscriptionInput = {
@@ -25,6 +25,9 @@ export default function SubscriptionsClient({ initial }: { initial: Subscription
     if ((a.status === "canceled") !== (b.status === "canceled")) return a.status === "canceled" ? 1 : -1;
     return daysUntil(a.nextDate) - daysUntil(b.nextDate);
   });
+
+  const activeCount = subs.filter((s) => s.status !== "canceled").length;
+  const totalMo = subs.reduce((a, s) => a + monthlyCost(s), 0);
 
   function openAdd() {
     setEditingId(null);
@@ -83,34 +86,57 @@ export default function SubscriptionsClient({ initial }: { initial: Subscription
 
   return (
     <>
+      <div className="page-head">
+        <h2>Subscriptions</h2>
+        <div className="sub">
+          <b>{activeCount}</b> active · recurring <b>~{fmtMoney(totalMo)}</b>/month
+        </div>
+      </div>
+
       <div className="toolbar">
         <button className="btn-primary" onClick={openAdd}>+ Add subscription</button>
       </div>
 
       {sorted.length === 0 && <div className="empty">No subscriptions yet.</div>}
-      {sorted.map((sub) => (
-        <div className="item" key={sub.id}>
-          <Avatar name={sub.name} />
-          <div className="grow">
-            <div className="name">
-              {sub.name} <StatusBadge status={sub.status} /> <DueBadge sub={sub} /> <PriceBadge price={sub.price} />
+
+      <div className="card-grid">
+        {sorted.map((sub) => (
+          <div
+            key={sub.id}
+            className={`sub-card${sub.status === "payment-issue" ? " issue" : ""}${sub.status === "canceled" ? " muted-card" : ""}`}
+          >
+            <div className="card-top">
+              <Avatar name={sub.name} />
+              <div className="who">
+                <div className="name">{sub.name}</div>
+                <div className="cat">{cycleName(sub.cycleMonths)}</div>
+              </div>
+              <StatusBadge status={sub.status} />
             </div>
-            <div className="meta">
-              Next: {fmtDate(sub.nextDate)}
-              {sub.notes ? ` · ${sub.notes}` : ""}
+
+            <div className="price-line">
+              <span className={`p${sub.price == null ? " unknown" : ""}`}>{fmtMoney(sub.price)}</span>
+              <span className="per">/ {cycleName(sub.cycleMonths).replace("every ", "")}</span>
+              {sub.price == null && (
+                <button className="badge b-price" onClick={() => openEdit(sub)}>+ set price</button>
+              )}
+            </div>
+
+            <div className="next-line">
+              <span>Renews {fmtDate(sub.nextDate)}</span>
+              <DueBadge sub={sub} />
+            </div>
+
+            {sub.notes && <div className="notes" title={sub.notes}>{sub.notes}</div>}
+
+            <div className="card-foot">
+              <button className="paid" title="Advance next date by one cycle" onClick={() => markPaid(sub.id)}>✓ Paid</button>
+              <button onClick={() => openEdit(sub)}>Edit</button>
+              <button className="del" onClick={() => remove(sub)}>✕</button>
             </div>
           </div>
-          <div className="amount">
-            <div className={`price${sub.price == null ? " unknown" : ""}`}>{fmtMoney(sub.price)}</div>
-            <div className="cycle">{cycleName(sub.cycleMonths)}</div>
-          </div>
-          <div className="actions">
-            <button className="paid" title="Advance next date by one cycle" onClick={() => markPaid(sub.id)}>✓ Paid</button>
-            <button onClick={() => openEdit(sub)}>Edit</button>
-            <button className="del" onClick={() => remove(sub)}>✕</button>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       <dialog ref={dialogRef}>
         <h3>{editingId ? "Edit subscription" : "Add subscription"}</h3>

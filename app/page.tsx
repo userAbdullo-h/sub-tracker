@@ -35,6 +35,10 @@ export default async function Dashboard() {
   return (
     <div className="wrap">
       <Nav />
+      <div className="page-head">
+        <h2>Overview</h2>
+        <div className="sub">Your money at a glance — updated {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}</div>
+      </div>
       <div className="cards">
         <div className="stat">
           <div className="icon">📊</div>

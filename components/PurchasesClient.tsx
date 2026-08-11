@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { X, Plus } from "@phosphor-icons/react";
 import Logo from "@/components/Logo";
 import { inferVendor, PURCHASE_ICON } from "@/lib/vendors";
 import { fmtMoney, fmtDate } from "@/lib/calc";
@@ -98,7 +99,7 @@ export default function PurchasesClient({ initial }: { initial: Purchase[] }) {
       </div>
 
       <div className="toolbar">
-        <button className="btn-primary" onClick={openAdd}>+ Add purchase</button>
+        <button className="btn-primary" onClick={openAdd}><Plus size={15} weight="bold" /> Add purchase</button>
         <input
           type="search"
           placeholder="Search purchases… (check here before buying twice!)"
@@ -118,7 +119,7 @@ export default function PurchasesClient({ initial }: { initial: Purchase[] }) {
             )}
             <span className="t">{cat}</span>
             <span className="m">
-              {items.length} · {spend > 0 ? fmtMoney(spend) : "—"}
+              {items.length} · {spend > 0 ? fmtMoney(spend) : "no price set"}
             </span>
           </div>
           <div className="card-grid">
@@ -135,7 +136,7 @@ export default function PurchasesClient({ initial }: { initial: Purchase[] }) {
                 <div className="price-line">
                   <span className={`p${p.price == null ? " unknown" : ""}`}>{fmtMoney(p.price)}</span>
                   {p.price == null && (
-                    <button className="badge b-price" onClick={() => openEdit(p)}>+ set price</button>
+                    <button className="badge b-price" onClick={() => openEdit(p)}>set price</button>
                   )}
                 </div>
 
@@ -147,7 +148,7 @@ export default function PurchasesClient({ initial }: { initial: Purchase[] }) {
 
                 <div className="card-foot">
                   <button onClick={() => openEdit(p)}>Edit</button>
-                  <button className="del" onClick={() => remove(p)}>✕</button>
+                  <button className="del" aria-label={`Delete ${p.name}`} onClick={() => remove(p)}><X size={14} weight="bold" /></button>
                 </div>
               </div>
             ))}
@@ -164,7 +165,7 @@ export default function PurchasesClient({ initial }: { initial: Purchase[] }) {
               onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </div>
           <div className="field">
-            <label>Price (USD) — leave empty if unknown</label>
+            <label>Price in USD, leave empty if unknown</label>
             <input type="number" step="0.01" min="0"
               value={form.price ?? ""}
               onChange={(e) => setForm({ ...form, price: e.target.value === "" ? null : Number(e.target.value) })} />

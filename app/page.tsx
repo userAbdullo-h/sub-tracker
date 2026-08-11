@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChartLineUp, CalendarBlank, ArrowsClockwise, Warning, CheckCircle } from "@phosphor-icons/react/dist/ssr";
 import Nav from "@/components/Nav";
 import Logo from "@/components/Logo";
 import { StatusBadge, DueBadge, PriceBadge } from "@/components/bits";
@@ -48,7 +49,7 @@ export default async function Dashboard() {
             {issues.length > 0 ? (
               <>You have <b>{issues.length} payment issue{issues.length > 1 ? "s" : ""}</b> and <b>{fmtMoney(due30)}</b> due in the next 30 days.</>
             ) : (
-              <>All payments healthy — <b>{fmtMoney(due30)}</b> due in the next 30 days.</>
+              <>Every payment is healthy. <b>{fmtMoney(due30)}</b> is due in the next 30 days.</>
             )}
           </p>
           <Link href="/subscriptions" className="btn-primary">Review subscriptions</Link>
@@ -56,29 +57,29 @@ export default async function Dashboard() {
       </section>
       <div className="cards">
         <div className="stat">
-          <div className="icon">📊</div>
+          <div className="icon"><ChartLineUp size={17} weight="bold" /></div>
           <div className="label">Recurring cost / month</div>
           <div className="value">~{fmtMoney(totalMonthly)}</div>
           <div className="sub">
             {unknownCount
-              ? `${unknownCount} subscription(s) missing a price — real total is higher`
+              ? `${unknownCount} ${unknownCount === 1 ? "subscription has" : "subscriptions have"} no price yet, so the real total is higher`
               : `across ${active.length} active subscriptions`}
           </div>
         </div>
         <div className="stat s-warn">
-          <div className="icon">📅</div>
+          <div className="icon"><CalendarBlank size={17} weight="bold" /></div>
           <div className="label">Due in next 30 days</div>
           <div className="value">{fmtMoney(due30)}</div>
-          <div className="sub">{upcoming.length} payment(s) coming up</div>
+          <div className="sub">{upcoming.length} {upcoming.length === 1 ? "payment" : "payments"} coming up</div>
         </div>
         <div className="stat s-ok">
-          <div className="icon">🔁</div>
+          <div className="icon"><ArrowsClockwise size={17} weight="bold" /></div>
           <div className="label">Active subscriptions</div>
           <div className="value">{active.length}</div>
           <div className="sub">{subs.length - active.length} canceled</div>
         </div>
         <div className={`stat ${issues.length ? "s-danger" : "s-ok"}`}>
-          <div className="icon">{issues.length ? "⚠️" : "✅"}</div>
+          <div className="icon">{issues.length ? <Warning size={17} weight="bold" /> : <CheckCircle size={17} weight="bold" />}</div>
           <div className="label">Payment issues</div>
           <div className="value" style={{ color: issues.length ? "var(--red)" : "var(--green)" }}>
             {issues.length}
@@ -92,10 +93,10 @@ export default async function Dashboard() {
           <h2>Needs attention</h2>
           {issues.map((s) => (
             <div className="alert" key={s.id}>
-              <div className="a-icon">⚠️</div>
+              <div className="a-icon"><Warning size={16} weight="bold" /></div>
               <div>
                 <div className="name">
-                  {s.name} — {fmtMoney(s.price)}
+                  {s.name} · {fmtMoney(s.price)}
                 </div>
                 <div className="meta">{s.notes || "Payment failing"}</div>
               </div>
@@ -114,7 +115,7 @@ export default async function Dashboard() {
       )}
 
       <section>
-        <h2>Upcoming payments — 30 days</h2>
+        <h2>Upcoming payments, next 30 days</h2>
         {upcoming.length ? (
           upcoming.map((s) => <Row sub={s} key={s.id} />)
         ) : (
@@ -122,7 +123,7 @@ export default async function Dashboard() {
         )}
       </section>
 
-      <footer>PayPilot · Phase 1 · data {process.env.MONGODB_URI ? "on MongoDB Atlas" : "in local file (dev mode)"}</footer>
+      <footer>Data stored {process.env.MONGODB_URI ? "on MongoDB Atlas" : "in a local file (development mode)"}</footer>
     </div>
   );
 }

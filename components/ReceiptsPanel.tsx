@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Paperclip, X } from "@phosphor-icons/react";
 import { fmtMoney, fmtDate } from "@/lib/calc";
 import type { Receipt } from "@/lib/types";
 
@@ -61,19 +62,19 @@ export default function ReceiptsPanel({
       {sorted.map((r) => (
         <div className="receipt-row" key={r.id}>
           <div className="r-date">{fmtDate(r.date)}</div>
-          <div className="r-amount">{r.amount != null ? fmtMoney(r.amount) : "—"}</div>
+          <div className="r-amount">{r.amount != null ? fmtMoney(r.amount) : "n/a"}</div>
           <div className="r-note">
             {r.note || "Payment"}
             {r.file && (
               <>
                 {" · "}
                 <a href={`/api/receipts/${r.file}`} target="_blank" rel="noreferrer">
-                  📎 {r.origName ?? "receipt"}
+                  <Paperclip size={13} weight="bold" /> {r.origName ?? "receipt"}
                 </a>
               </>
             )}
           </div>
-          <button className="r-del" title="Delete" onClick={() => remove(r)}>✕</button>
+          <button className="r-del" title="Delete receipt" aria-label="Delete receipt" onClick={() => remove(r)}><X size={14} weight="bold" /></button>
         </div>
       ))}
 
@@ -87,7 +88,7 @@ export default function ReceiptsPanel({
             onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         </div>
         {error && <div className="receipt-error">{error}</div>}
-        <button className="btn-secondary" type="submit" disabled={busy}>{busy ? "Saving…" : "+ Add record"}</button>
+        <button className="btn-secondary" type="submit" disabled={busy}>{busy ? "Saving…" : "Add record"}</button>
       </form>
     </div>
   );

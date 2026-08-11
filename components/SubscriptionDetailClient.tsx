@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { Check, ArrowLeft } from "@phosphor-icons/react";
 import { StatusBadge, DueBadge } from "@/components/bits";
 import Logo from "@/components/Logo";
 import ReceiptsPanel from "@/components/ReceiptsPanel";
@@ -64,7 +65,7 @@ export default function SubscriptionDetailClient({ initial }: { initial: Subscri
 
   return (
     <>
-      <Link href="/subscriptions" className="back-link">← All subscriptions</Link>
+      <Link href="/subscriptions" className="back-link"><ArrowLeft size={14} weight="bold" /> All subscriptions</Link>
 
       <div className={`detail-head stage-${stage}`}>
         <Logo name={sub.name} domain={sub.logoDomain} category={sub.category} />
@@ -82,15 +83,15 @@ export default function SubscriptionDetailClient({ initial }: { initial: Subscri
           <div className="value">{fmtMoney(sub.price)}</div>
           <div className="sub">≈ {fmtMoney(monthlyCost(sub))}/month</div></div>
         <div className="stat"><div className="label">Next payment</div>
-          <div className="value" style={{ fontSize: "1.3rem" }}>{fmtDate(sub.nextDate)}</div>
+          <div className="value date">{fmtDate(sub.nextDate)}</div>
           <div className="sub">{cycleName(sub.cycleMonths)}</div></div>
         <div className="stat"><div className="label">Last paid</div>
-          <div className="value" style={{ fontSize: "1.3rem" }}>{sub.lastPaidAt ? fmtDate(sub.lastPaidAt) : "—"}</div>
-          <div className="sub">{(sub.receipts ?? []).length} payment record(s)</div></div>
+          <div className="value date">{sub.lastPaidAt ? fmtDate(sub.lastPaidAt) : "not yet"}</div>
+          <div className="sub">{(sub.receipts ?? []).length} {(sub.receipts ?? []).length === 1 ? "payment record" : "payment records"}</div></div>
       </div>
 
       <div className="toolbar">
-        <button className="btn-primary" onClick={markPaid}>✓ Mark paid</button>
+        <button className="btn-primary" onClick={markPaid}><Check size={15} weight="bold" /> Mark paid</button>
         <button className="btn-secondary" onClick={openEdit}>Edit</button>
         <button className="btn-secondary" onClick={remove} style={{ color: "var(--red)" }}>Delete</button>
       </div>
@@ -115,7 +116,7 @@ export default function SubscriptionDetailClient({ initial }: { initial: Subscri
           <form onSubmit={submit}>
             <div className="field"><label>Name *</label>
               <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-            <div className="field"><label>Price (USD) — leave empty if unknown</label>
+            <div className="field"><label>Price in USD, leave empty if unknown</label>
               <input type="number" step="0.01" min="0" value={form.price ?? ""}
                 onChange={(e) => setForm({ ...form, price: e.target.value === "" ? null : Number(e.target.value) })} /></div>
             <div className="field"><label>Category</label>

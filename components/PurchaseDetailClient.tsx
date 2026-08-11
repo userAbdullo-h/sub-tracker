@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { ArrowLeft } from "@phosphor-icons/react";
 import Logo from "@/components/Logo";
 import ReceiptsPanel from "@/components/ReceiptsPanel";
 import { inferVendor } from "@/lib/vendors";
@@ -46,7 +47,7 @@ export default function PurchaseDetailClient({ initial }: { initial: Purchase })
 
   return (
     <>
-      <Link href="/purchases" className="back-link">← All purchases</Link>
+      <Link href="/purchases" className="back-link"><ArrowLeft size={14} weight="bold" /> All purchases</Link>
 
       <div className="detail-head stage-normal">
         <Logo name={pur.name} domain={inferVendor(pur.name).domain} category={pur.category} kind="purchase" />
@@ -61,8 +62,8 @@ export default function PurchaseDetailClient({ initial }: { initial: Purchase })
           <div className="value">{fmtMoney(pur.price)}</div>
           <div className="sub">one-time purchase</div></div>
         <div className="stat"><div className="label">Purchase date</div>
-          <div className="value" style={{ fontSize: "1.3rem" }}>{fmtDate(pur.date)}</div>
-          <div className="sub">{(pur.receipts ?? []).length} receipt(s)</div></div>
+          <div className="value date">{fmtDate(pur.date)}</div>
+          <div className="sub">{(pur.receipts ?? []).length} {(pur.receipts ?? []).length === 1 ? "receipt" : "receipts"}</div></div>
       </div>
 
       <div className="toolbar">
@@ -90,7 +91,7 @@ export default function PurchaseDetailClient({ initial }: { initial: Purchase })
           <form onSubmit={submit}>
             <div className="field"><label>Name *</label>
               <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-            <div className="field"><label>Price (USD) — leave empty if unknown</label>
+            <div className="field"><label>Price in USD, leave empty if unknown</label>
               <input type="number" step="0.01" min="0" value={form.price ?? ""}
                 onChange={(e) => setForm({ ...form, price: e.target.value === "" ? null : Number(e.target.value) })} /></div>
             <div className="field"><label>Date *</label>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { DownloadSimple, UploadSimple } from "@phosphor-icons/react";
 
 export default function BackupClient() {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -17,16 +18,16 @@ export default function BackupClient() {
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("import failed");
-      setMsg("✓ Backup imported — reload the page to see it.");
+      setMsg("Backup imported. Reload the page to see it.");
     } catch {
-      setMsg("✗ Invalid backup file.");
+      setMsg("That file is not a valid PayPilot backup.");
     }
   }
 
   return (
     <div className="toolbar">
-      <a className="btn-primary" href="/api/backup" download>⬇ Export backup (JSON)</a>
-      <button className="btn-secondary" onClick={() => fileRef.current?.click()}>⬆ Import backup</button>
+      <a className="btn-primary" href="/api/backup" download><DownloadSimple size={15} weight="bold" /> Export backup</a>
+      <button className="btn-secondary" onClick={() => fileRef.current?.click()}><UploadSimple size={15} weight="bold" /> Import backup</button>
       <input
         ref={fileRef}
         type="file"

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const geistMono = Geist_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: "PayPilot — Subscriptions & Payments",
+  title: "PayPilot · Subscriptions & Payments",
   description: "Personal subscription, purchase and API-usage autopilot",
 };
 
@@ -13,8 +14,8 @@ const themeInit = `(function(){try{var t=localStorage.getItem("pp-theme");docume
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={inter.variable}>
-      <body style={{ fontFamily: "var(--font-inter), system-ui, sans-serif" }}>
+    <html lang="en" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable}`}>
+      <body>
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
         <div className="aurora" aria-hidden="true"><span /><span /><span /></div>
         {children}

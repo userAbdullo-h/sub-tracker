@@ -6,7 +6,7 @@ export default function SignInPage() {
       <div className="signin-card">
         <div className="logo signin-logo">💳</div>
         <h1>PayPilot</h1>
-        <p>Your subscriptions, purchases and API usage — on autopilot.</p>
+        <p>Your subscriptions, purchases and API usage, on autopilot.</p>
         <form
           action={async () => {
             "use server";

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { Check, X, Plus } from "@phosphor-icons/react";
 import { StatusBadge, DueBadge } from "@/components/bits";
 import Logo from "@/components/Logo";
 import { fmtMoney, fmtDate, cycleName, daysUntil, monthlyCost, stageOf } from "@/lib/calc";
@@ -111,7 +112,7 @@ export default function SubscriptionsClient({ initial }: { initial: Subscription
       </div>
 
       <div className="toolbar">
-        <button className="btn-primary" onClick={openAdd}>+ Add subscription</button>
+        <button className="btn-primary" onClick={openAdd}><Plus size={15} weight="bold" /> Add subscription</button>
         <div className="legend">
           <span><i className="dot d-red" /> overdue / failed</span>
           <span><i className="dot d-yellow" /> due ≤ 5 days</span>
@@ -131,7 +132,7 @@ export default function SubscriptionsClient({ initial }: { initial: Subscription
             )}
             <span className="t">{cat}</span>
             <span className="m">
-              {list.length} · {spend > 0 ? `~${fmtMoney(spend)}/mo` : "—"}
+              {list.length} · {spend > 0 ? `~${fmtMoney(spend)}/mo` : "no price set"}
             </span>
           </div>
           <div className="card-grid">
@@ -153,7 +154,7 @@ export default function SubscriptionsClient({ initial }: { initial: Subscription
                   <span className={`p${sub.price == null ? " unknown" : ""}`}>{fmtMoney(sub.price)}</span>
                   <span className="per">/ {cycleName(sub.cycleMonths).replace("every ", "")}</span>
                   {sub.price == null && (
-                    <button className="badge b-price" onClick={() => openEdit(sub)}>+ set price</button>
+                    <button className="badge b-price" onClick={() => openEdit(sub)}>set price</button>
                   )}
                 </div>
 
@@ -165,9 +166,9 @@ export default function SubscriptionsClient({ initial }: { initial: Subscription
                 {sub.notes && <div className="notes" title={sub.notes}>{sub.notes}</div>}
 
                 <div className="card-foot">
-                  <button className="paid" title="Advance next date by one cycle" onClick={() => markPaid(sub.id)}>✓ Paid</button>
+                  <button className="paid" title="Advance next date by one cycle" onClick={() => markPaid(sub.id)}><Check size={14} weight="bold" /> Paid</button>
                   <button onClick={() => openEdit(sub)}>Edit</button>
-                  <button className="del" onClick={() => remove(sub)}>✕</button>
+                  <button className="del" aria-label={`Delete ${sub.name}`} onClick={() => remove(sub)}><X size={14} weight="bold" /></button>
                 </div>
               </div>
             ))}
@@ -184,7 +185,7 @@ export default function SubscriptionsClient({ initial }: { initial: Subscription
               onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </div>
           <div className="field">
-            <label>Price (USD) — leave empty if unknown</label>
+            <label>Price in USD, leave empty if unknown</label>
             <input type="number" step="0.01" min="0" placeholder="9.99"
               value={form.price ?? ""}
               onChange={(e) => setForm({ ...form, price: e.target.value === "" ? null : Number(e.target.value) })} />

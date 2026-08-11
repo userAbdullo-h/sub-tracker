@@ -40,27 +40,27 @@ export default function SettingsPage() {
           label="Database"
           ok={!fileDb}
           okText="MongoDB Atlas connected"
-          badText="Using local file (data/dev-db.json) — dev only. Set MONGODB_URI to use Atlas."
+          badText="Using the local file data/dev-db.json, which is for development only. Set MONGODB_URI to use Atlas."
         />
         <EnvRow
           label="Google sign-in"
           ok={googleReady}
           okText="Google OAuth credentials configured"
-          badText="AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET not set — required before deploying."
+          badText="AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET are not set. Both are required before deploying."
         />
         <EnvRow
           label="Auth mode"
           ok={!bypass}
           okText="Full authentication enforced"
-          badText="DEV_BYPASS_AUTH=true — sign-in is skipped. Local development only!"
+          badText="DEV_BYPASS_AUTH is true, so sign-in is skipped. Local development only."
         />
       </section>
 
       <section>
         <h2>Coming in later phases</h2>
         <div className="note-banner">
-          Phase 2: Gmail auto-scan · Phase 3: Google Calendar sync · Phase 4: Telegram notifications with custom rules ·
-          Phase 5: API token &amp; usage monitor (Anthropic, Hetzner, Replicate, Higgsfield). See SPEC.md.
+          Gmail auto-scan (Phase 2), Google Calendar sync (Phase 3), Telegram notifications with custom rules (Phase 4),
+          and an API token &amp; usage monitor for Anthropic, Hetzner, Replicate and Higgsfield (Phase 5). See SPEC.md.
         </div>
       </section>
     </div>

@@ -93,7 +93,7 @@ export default async function Dashboard() {
           <h2>Needs attention</h2>
           {issues.map((s) => (
             <div className="alert" key={s.id}>
-              <div className="a-icon"><Warning size={16} weight="bold" /></div>
+              <Logo name={s.name} domain={s.logoDomain} category={s.category} />
               <div>
                 <div className="name">
                   {s.name} · {fmtMoney(s.price)}

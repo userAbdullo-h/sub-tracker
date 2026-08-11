@@ -395,6 +395,9 @@ button.b-price:active{transform:scale(.96);}
   width:32px; height:32px; flex-shrink:0; border-radius:var(--r-control); display:grid; place-items:center;
   background:var(--red-bg); color:var(--red);
 }
+.alert .avatar{width:36px; height:36px;}
+.alert .logo-tile img{width:21px; height:21px;}
+.alert .logo-tile.icon-tile img{width:36px; height:36px;}
 .alert .name{font-weight:600; color:var(--text); font-size:.9rem; letter-spacing:-.015em;}
 .alert .meta{color:var(--muted); font-size:.8rem; margin-top:2px;}
 .note-banner{

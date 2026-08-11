@@ -52,6 +52,13 @@ and queued 1, exactly as designed:
   (this is the real renewal that started the whole project, finally closed by the app itself)
 - Anthropic $7.84 → **held for review**, because the amount-sanity guard rejected it against the $112 Claude sub
 
+Follow-up the same day: the owner explained that Anthropic charge was an **API credit top-up bought in the Anthropic
+Console for a project**, not a Claude plan payment. So the scanner now understands one-off credit purchases:
+`ParsedEvent.oneOff` (set by the stripe-receipt parser on "one-time / credit purchase / added credits" wording,
+vendor suffixed " (credits)") makes `scan.ts` skip subscription matching entirely, so these queue as purchases
+instead of ever touching a subscription. The $7.84 was filed as a purchase via the review queue's "+ Purchase".
+Relevant later: Phase 5's token monitor is the real home for this kind of spend.
+
 A pre-scan backup of the owner's data sits at `data/dev-db.before-scan.json` (gitignored) if anything needs undoing.
 
 ## ⚠️ History note (2026-08-11): Phase 2 was removed from the remote

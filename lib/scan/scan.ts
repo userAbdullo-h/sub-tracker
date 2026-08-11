@@ -68,7 +68,10 @@ export async function runScan(source: GmailSource): Promise<ScanResult> {
     result.parsed++;
 
     const subs = await repo.listSubscriptions();
-    const matched = matchSubscription(parsed.vendor, subs);
+    // One-off buys (API credit top-ups) are never subscription payments, even
+    // when the vendor is one you subscribe to. Leave them unmatched so the
+    // review queue offers "+ Purchase" instead of touching the subscription.
+    const matched = parsed.oneOff ? undefined : matchSubscription(parsed.vendor, subs);
 
     const event: DetectedEvent = {
       id: randomUUID(),

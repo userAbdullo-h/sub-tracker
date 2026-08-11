@@ -8,6 +8,12 @@ export interface ParsedEvent {
   kind: DetectedKind;
   /** Optional better date than the email date (e.g. a stated renewal date), YYYY-MM-DD. */
   date?: string;
+  /**
+   * True for one-time buys that must never be treated as a subscription payment,
+   * e.g. topping up API credits with a provider you also subscribe to.
+   * The scanner skips subscription matching for these and queues them as purchases.
+   */
+  oneOff?: boolean;
 }
 
 export interface Parser {
@@ -74,7 +80,15 @@ export const PARSERS: Parser[] = [
     parse: (m) => {
       const vendor = m.subject.match(/receipt from (.+?)(?:\s*#|$)/i)?.[1]?.trim();
       if (!vendor) return null;
-      return { vendor, amount: findLabeledAmount(text(m)), kind: "charge" };
+      const body = text(m);
+      // "One-time credit purchase" = API credits / pay-as-you-go top-up, not a plan renewal.
+      const oneOff = /one-?time|credit purchase|credits? purchase|add(?:ed)? credits?/i.test(body);
+      return {
+        vendor: oneOff ? `${vendor} (credits)` : vendor,
+        amount: findLabeledAmount(body),
+        kind: "charge",
+        oneOff,
+      };
     },
   },
   {

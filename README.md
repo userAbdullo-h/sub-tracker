@@ -25,6 +25,23 @@ is stored in `data/dev-db.json`, pre-seeded with the subscriptions found in the 
 
 On first run with an empty database, PayPilot seeds it with the initial data automatically.
 
+#### Moving your existing local data into Atlas
+
+The app reads `MONGODB_URI` at startup: set it and you are on Atlas, leave it empty and you are on
+`data/dev-db.json`. Switching does **not** copy anything by itself, and an empty Atlas database seeds itself
+from `lib/seed.ts`, so do this instead:
+
+1. **Settings → Export backup** while still on the local file. The file contains records, receipts, and the
+   `detected` scan ledger. It deliberately does **not** contain your Gmail refresh token.
+2. Put the connection string in `MONGODB_URI` and restart (`npm run dev`).
+3. **Settings → Import backup** and pick that file. Import replaces everything in the target database.
+
+Step 1 matters more than it looks: `detected` is the message-id ledger that stops a re-scan from applying the
+same charge twice. Restoring a backup without it would let the next scan re-apply old receipts.
+
+Receipt **files** (`data/receipts/`) stay on local disk either way. Atlas holds the payment records; the
+attachments need Vercel Blob or similar before production.
+
 ### 2. Google OAuth (sign-in)
 1. [Google Cloud Console](https://console.cloud.google.com/) → create a project → **APIs & Services → OAuth consent screen** (External, add yourself as test user).
 2. **Credentials → Create credentials → OAuth client ID → Web application.**

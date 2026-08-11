@@ -14,7 +14,11 @@ export interface Repo {
   createPurchase(input: PurchaseInput): Promise<Purchase>;
   updatePurchase(id: string, patch: Partial<PurchaseInput>): Promise<Purchase | null>;
   deletePurchase(id: string): Promise<boolean>;
-  replaceAll(subs: Subscription[], purs: Purchase[]): Promise<void>;
+  /**
+   * Restore a backup. `detected` and `scanMeta` are optional: pass them to migrate
+   * scan history (keeps message-id dedupe intact), omit them to leave it untouched.
+   */
+  replaceAll(subs: Subscription[], purs: Purchase[], detected?: DetectedEvent[], scanMeta?: ScanMeta): Promise<void>;
   // Gmail scan (Phase 2)
   listDetected(): Promise<DetectedEvent[]>;
   createDetected(event: DetectedEvent): Promise<DetectedEvent>;
@@ -107,9 +111,17 @@ class FileRepo implements Repo {
     return data.purchases.length < before;
   }
 
-  async replaceAll(subs: Subscription[], purs: Purchase[]) {
-    const { detected, scanMeta } = this.read();
-    this.cache = { subscriptions: subs, purchases: purs, detected, scanMeta };
+  async replaceAll(subs: Subscription[], purs: Purchase[], detected?: DetectedEvent[], scanMeta?: ScanMeta) {
+    const current = this.read();
+    this.cache = {
+      subscriptions: subs,
+      purchases: purs,
+      detected: detected ?? current.detected,
+      // Never let a backup file overwrite the live Gmail token (backups omit it).
+      scanMeta: scanMeta
+        ? { ...scanMeta, gmailRefreshToken: current.scanMeta?.gmailRefreshToken }
+        : current.scanMeta,
+    };
     this.write();
   }
 
@@ -227,13 +239,24 @@ class MongoRepo implements Repo {
     return (await (await this.pursCol()).deleteOne({ id })).deletedCount > 0;
   }
 
-  async replaceAll(subs: Subscription[], purs: Purchase[]) {
+  async replaceAll(subs: Subscription[], purs: Purchase[], detected?: DetectedEvent[], scanMeta?: ScanMeta) {
     const sCol = await this.subsCol();
     const pCol = await this.pursCol();
     await sCol.deleteMany({});
     if (subs.length) await sCol.insertMany(subs.map((s) => ({ ...s })));
     await pCol.deleteMany({});
     if (purs.length) await pCol.insertMany(purs.map((p) => ({ ...p })));
+
+    if (detected) {
+      const dCol = await this.detectedCol();
+      await dCol.deleteMany({});
+      if (detected.length) await dCol.insertMany(detected.map((e) => ({ ...e })));
+    }
+    if (scanMeta) {
+      // Keep whatever Gmail token this environment already holds; backups omit it.
+      const { gmailRefreshToken } = await this.getScanMeta();
+      await this.setScanMeta({ ...scanMeta, gmailRefreshToken });
+    }
   }
 
   private async detectedCol() {

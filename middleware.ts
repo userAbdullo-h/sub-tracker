@@ -14,5 +14,6 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
+  // api/scan excluded so Vercel Cron's Bearer-token GET isn't redirected to /signin
+  matcher: ["/((?!api/auth|api/scan|_next/static|_next/image|favicon.ico).*)"],
 };

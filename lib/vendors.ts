@@ -38,6 +38,7 @@ const VENDORS: Array<[RegExp, { domain: string; category: Category }]> = [
   [/higgsfield/i, { domain: "higgsfield.ai", category: "AI Tools" }],
   [/replicate/i, { domain: "replicate.com", category: "AI Tools" }],
   [/google ai|gemini/i, { domain: "gemini.google.com", category: "AI Tools" }],
+  [/chatgpt|openai/i, { domain: "openai.com", category: "AI Tools" }],
   [/skool/i, { domain: "skool.com", category: "Learning" }],
   [/aiforui/i, { domain: "aiforui.dev", category: "Learning" }],
   [/css for js|comeau/i, { domain: "css-for-js.dev", category: "Learning" }],

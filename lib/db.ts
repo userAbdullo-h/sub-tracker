@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import fs from "fs";
 import path from "path";
-import type { Subscription, SubscriptionInput, Purchase, PurchaseInput } from "./types";
+import type { Subscription, SubscriptionInput, Purchase, PurchaseInput, DetectedEvent, ScanMeta } from "./types";
 import { seedSubscriptions, seedPurchases } from "./seed";
 import { normalizeSub } from "./vendors";
 
@@ -15,13 +15,25 @@ export interface Repo {
   updatePurchase(id: string, patch: Partial<PurchaseInput>): Promise<Purchase | null>;
   deletePurchase(id: string): Promise<boolean>;
   replaceAll(subs: Subscription[], purs: Purchase[]): Promise<void>;
+  // Gmail scan (Phase 2)
+  listDetected(): Promise<DetectedEvent[]>;
+  createDetected(event: DetectedEvent): Promise<DetectedEvent>;
+  updateDetected(id: string, patch: Partial<DetectedEvent>): Promise<DetectedEvent | null>;
+  hasDetected(sourceMsgId: string): Promise<boolean>;
+  getScanMeta(): Promise<ScanMeta>;
+  setScanMeta(meta: ScanMeta): Promise<void>;
 }
 
 const now = () => new Date().toISOString();
 
 /* ---------------- File-based repo (local dev fallback) ---------------- */
 
-interface FileData { subscriptions: Subscription[]; purchases: Purchase[]; }
+interface FileData {
+  subscriptions: Subscription[];
+  purchases: Purchase[];
+  detected?: DetectedEvent[];
+  scanMeta?: ScanMeta;
+}
 
 class FileRepo implements Repo {
   private file = path.join(process.cwd(), "data", "dev-db.json");
@@ -96,7 +108,36 @@ class FileRepo implements Repo {
   }
 
   async replaceAll(subs: Subscription[], purs: Purchase[]) {
-    this.cache = { subscriptions: subs, purchases: purs };
+    const { detected, scanMeta } = this.read();
+    this.cache = { subscriptions: subs, purchases: purs, detected, scanMeta };
+    this.write();
+  }
+
+  async listDetected() { return [...(this.read().detected ?? [])]; }
+
+  async createDetected(event: DetectedEvent) {
+    const data = this.read();
+    (data.detected ??= []).push(event);
+    this.write();
+    return event;
+  }
+
+  async updateDetected(id: string, patch: Partial<DetectedEvent>) {
+    const ev = this.read().detected?.find((e) => e.id === id);
+    if (!ev) return null;
+    Object.assign(ev, patch);
+    this.write();
+    return ev;
+  }
+
+  async hasDetected(sourceMsgId: string) {
+    return (this.read().detected ?? []).some((e) => e.sourceMsgId === sourceMsgId);
+  }
+
+  async getScanMeta() { return { ...(this.read().scanMeta ?? {}) }; }
+
+  async setScanMeta(meta: ScanMeta) {
+    this.read().scanMeta = meta;
     this.write();
   }
 }
@@ -193,6 +234,50 @@ class MongoRepo implements Repo {
     if (subs.length) await sCol.insertMany(subs.map((s) => ({ ...s })));
     await pCol.deleteMany({});
     if (purs.length) await pCol.insertMany(purs.map((p) => ({ ...p })));
+  }
+
+  private async detectedCol() {
+    const client = await this.clientPromise;
+    return client.db("paypilot").collection<DetectedEvent>("detected");
+  }
+
+  private async metaCol() {
+    const client = await this.clientPromise;
+    return client.db("paypilot").collection<ScanMeta & { _key: string }>("meta");
+  }
+
+  async listDetected() {
+    return (await (await this.detectedCol()).find().toArray()).map((d) => this.strip<DetectedEvent>(d)!);
+  }
+
+  async createDetected(event: DetectedEvent) {
+    await (await this.detectedCol()).insertOne({ ...event });
+    return event;
+  }
+
+  async updateDetected(id: string, patch: Partial<DetectedEvent>) {
+    const res = await (await this.detectedCol()).findOneAndUpdate(
+      { id },
+      { $set: patch },
+      { returnDocument: "after" }
+    );
+    return this.strip<DetectedEvent>(res);
+  }
+
+  async hasDetected(sourceMsgId: string) {
+    return (await (await this.detectedCol()).countDocuments({ sourceMsgId }, { limit: 1 })) > 0;
+  }
+
+  async getScanMeta(): Promise<ScanMeta> {
+    const doc = await (await this.metaCol()).findOne({ _key: "scan" });
+    if (!doc) return {};
+    const { _id, _key, ...meta } = doc as ScanMeta & { _key: string; _id?: unknown };
+    void _id; void _key;
+    return meta;
+  }
+
+  async setScanMeta(meta: ScanMeta) {
+    await (await this.metaCol()).updateOne({ _key: "scan" }, { $set: { ...meta, _key: "scan" } }, { upsert: true });
   }
 }
 

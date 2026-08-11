@@ -31,6 +31,29 @@
 - **Phase 1 done + taste pass applied.** Phases 2–5 not started on this line of history.
 - **Legacy:** `index.html` (v0 tracker) still works standalone.
 
+## ✅ Phase 2 was recovered (2026-08-11, later the same day)
+
+The owner asked to start Phase 2 right after the rewrite below, so instead of rebuilding from scratch the code was
+**recovered from the `phase2-archive` branch** onto main and re-verified end to end. `phase2-archive` has since been
+deleted (its content now lives on main). The history note below is kept for context.
+
+What was recovered wholesale (no UI dependencies): `lib/scan/*`, `app/api/{scan,detected,gmail}/*`, `app/review/`,
+`components/ReviewClient.tsx`, `scripts/check-parsers.ts`, `vercel.json`, plus the Phase 2 additions to `lib/db.ts`
+(detected + scanMeta), `lib/types.ts` (DetectedEvent, ScanMeta), `lib/vendors.ts` (chatgpt/openai) and `middleware.ts`.
+What was **re-merged by hand** so the 2026-08-11 taste pass survived: `components/Nav.tsx` (Review tab + `.nav-badge`),
+`app/settings/page.tsx` (Gmail connection section), `app/globals.css` (review-queue rules only).
+
+**Fixtures were re-captured** (the originals were on the other PC): `data/scan-fixtures.json` now holds 3 real emails
+pulled read-only from Gmail on 2026-08-11 — a 2Checkout/Bitdefender failure + receipt pair, and an Anthropic
+one-time credit purchase. `npx tsx scripts/check-parsers.ts` reports 3/3 parsed. A live scan then auto-applied 2 events
+and queued 1, exactly as designed:
+- Bitdefender failure → flagged payment-issue
+- Bitdefender $159.99 charge → matched, advanced the sub to 2027-08-23, logged the payment, cleared the flag
+  (this is the real renewal that started the whole project, finally closed by the app itself)
+- Anthropic $7.84 → **held for review**, because the amount-sanity guard rejected it against the $112 Claude sub
+
+A pre-scan backup of the owner's data sits at `data/dev-db.before-scan.json` (gitignored) if anything needs undoing.
+
 ## ⚠️ History note (2026-08-11): Phase 2 was removed from the remote
 
 A second PC had built **Phase 2 (Gmail auto-scan + review queue)** and pushed it (commits `5698f72`, `979fd14`).
@@ -38,10 +61,9 @@ That work could not run on this machine because its `data/` folder (with `scan-f
 state) was never transferred, and the owner decided to continue from the 2026-08-08 line instead.
 `main` was force-pushed on 2026-08-11, so **Phase 2 is no longer on GitHub**.
 
-- Recoverable ONLY from this PC: local branch **`phase2-archive`** still points at `979fd14`.
-  `git log phase2-archive` to inspect, `git cherry-pick` / `git checkout phase2-archive -- <path>` to salvage parts.
-- If that branch or this machine is lost, Phase 2 must be rebuilt from `SPEC.md` §Phase 2.
-- Local branch `taste-pass` is merged into main and can be deleted at any time.
+- The Phase 2 *code* was salvaged from that branch (see the section above) before it was deleted, so nothing of
+  substance was lost. What did NOT come back: the other PC's own taste pass (superseded by ours) and its
+  17-email fixture set (replaced with a fresh 3-email capture).
 
 ## Not in git (transfer manually if needed)
 
@@ -57,13 +79,19 @@ state) was never transferred, and the owner decided to continue from the 2026-08
 - [ ] Phase 4 decision: existing Telegram bot — token or backend API? send-only or can take commands?
 - [ ] Phase 5 check: does Anthropic account have Console/Admin API access?
 
-## Next work item
+## Next work item (updated 2026-08-11)
+
+**Phase 3 — Google Calendar sync** (SPEC.md §Phase 3). Still blocked on the owner's Google OAuth credentials, which
+also unlock real Gmail scanning (Settings → Connect Gmail). Until then the Review page scans `data/scan-fixtures.json`.
+
+<details><summary>Previous next-item note (Phase 2, now done)</summary>
 
 **Phase 2 — Gmail auto-scan** (see SPEC.md §Phase 2): OAuth `gmail.readonly` incremental consent, `/api/scan` + Vercel Cron,
 per-sender parsers (Google Play, Skool, Anthropic/Stripe, 2Checkout, Proton, generic), vendor-alias matching engine,
 review queue (`detected` collection), auto-advance matched charges, auto-flag failures. Gmail search queries that worked
 for the manual scan are documented in the git history of this session's work — or re-derive: category:purchases,
 subject:(receipt OR invoice), "your subscription" OR "renews on", sender-specific (googleplay-noreply, 2checkout, stripe).
+</details>
 
 ## Session log
 

@@ -468,6 +468,19 @@ button.b-price:active{transform:scale(.96);}
 .receipt-fields input[type=file]{padding:7px;}
 .receipt-error{color:var(--red); font-size:.8rem; margin-bottom:10px;}
 
+/* ---------- Review queue (Gmail scan) ---------- */
+.nav-badge{
+  display:inline-grid; place-items:center; min-width:17px; height:17px; padding:0 5px;
+  margin-left:6px; border-radius:var(--r-pill); background:var(--red); color:#fff;
+  font-size:.64rem; font-weight:700; font-variant-numeric:tabular-nums; vertical-align:1px;
+}
+.review-actions{display:flex; gap:7px; flex-wrap:wrap;}
+.review-actions .btn-secondary{padding:8px 14px; font-size:.8rem;}
+.review-actions .btn-dismiss{color:var(--muted);}
+.scan-summary{color:var(--faint); font-size:.8rem; font-variant-numeric:tabular-nums;}
+.history-item{opacity:.72;}
+.history-item:hover{opacity:1;}
+
 /* ---------- Dialogs ---------- */
 dialog{
   background:var(--surface); color:var(--text); border:1px solid var(--border-strong);

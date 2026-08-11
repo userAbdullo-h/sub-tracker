@@ -383,9 +383,12 @@ button.b-price:active{transform:scale(.96);}
 
 /* ---------- Alerts & banners ---------- */
 .alert{
-  background:linear-gradient(180deg, var(--red-bg), transparent 140%);
-  border:1px solid rgba(239,91,91,.3); border-radius:var(--r-card);
+  background:var(--surface);
+  border:1px solid rgba(239,91,91,.45);
+  border-left:4px solid var(--red);
+  border-radius:var(--r-card);
   padding:15px 18px; margin-bottom:10px; display:flex; gap:13px; align-items:flex-start;
+  box-shadow:var(--shadow-card);
   animation:fadeUp .4s var(--ease) both;
 }
 .alert .a-icon{

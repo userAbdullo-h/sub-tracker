@@ -158,8 +158,11 @@ class FileRepo implements Repo {
 
 class MongoRepo implements Repo {
   private clientPromise: Promise<import("mongodb").MongoClient>;
+  /** Database named in MONGODB_URI (e.g. ...net/subscription-app?...), else "paypilot". */
+  private dbName: string;
 
   constructor(uri: string) {
+    this.dbName = MongoRepo.databaseFromUri(uri);
     // Reuse the client across hot reloads / serverless invocations
     const g = globalThis as unknown as { _mongoClientPromise?: Promise<import("mongodb").MongoClient> };
     if (!g._mongoClientPromise) {
@@ -168,22 +171,55 @@ class MongoRepo implements Repo {
     this.clientPromise = g._mongoClientPromise;
   }
 
-  private async subsCol() {
-    const client = await this.clientPromise;
-    const col = client.db("paypilot").collection<Subscription>("subscriptions");
-    if ((await col.estimatedDocumentCount()) === 0) {
-      await col.insertMany(seedSubscriptions.map((s) => ({ ...s, id: randomUUID(), createdAt: now(), updatedAt: now() })));
+  static databaseFromUri(uri: string): string {
+    // Everything between the host list and the query string is the database name.
+    const afterHost = uri.replace(/^mongodb(\+srv)?:\/\/[^/]+/i, "");
+    const name = afterHost.split("?")[0].replace(/^\//, "").trim();
+    return name || "paypilot";
+  }
+
+  private async db() {
+    return (await this.clientPromise).db(this.dbName);
+  }
+
+  /**
+   * Seed a brand-new database exactly once.
+   *
+   * A plain "is it empty?" check is not safe here: several requests hit the
+   * database at the same moment on a cold start, all see zero documents, and
+   * all seed. That produced 7 copies of the seed data the first time this ran
+   * against Atlas. The upsert below is atomic, so only the caller that inserts
+   * the marker does the seeding.
+   */
+  private async ensureSeeded() {
+    const db = await this.db();
+    const marker = await db.collection("meta").updateOne(
+      { _key: "seeded" },
+      { $setOnInsert: { _key: "seeded", at: now() } },
+      { upsert: true }
+    );
+    if (marker.upsertedCount !== 1) return; // someone else seeded (or already seeded)
+
+    const subs = db.collection<Subscription>("subscriptions");
+    const purs = db.collection<Purchase>("purchases");
+    if ((await subs.estimatedDocumentCount()) === 0) {
+      await subs.insertMany(
+        seedSubscriptions.map((s) => ({ ...s, id: randomUUID(), createdAt: now(), updatedAt: now() }))
+      );
     }
-    return col;
+    if ((await purs.estimatedDocumentCount()) === 0) {
+      await purs.insertMany(seedPurchases.map((p) => ({ ...p, id: randomUUID() })));
+    }
+  }
+
+  private async subsCol() {
+    await this.ensureSeeded();
+    return (await this.db()).collection<Subscription>("subscriptions");
   }
 
   private async pursCol() {
-    const client = await this.clientPromise;
-    const col = client.db("paypilot").collection<Purchase>("purchases");
-    if ((await col.estimatedDocumentCount()) === 0) {
-      await col.insertMany(seedPurchases.map((p) => ({ ...p, id: randomUUID() })));
-    }
-    return col;
+    await this.ensureSeeded();
+    return (await this.db()).collection<Purchase>("purchases");
   }
 
   private strip<T extends { id: string }>(doc: (T & { _id?: unknown }) | null): T | null {
@@ -260,13 +296,11 @@ class MongoRepo implements Repo {
   }
 
   private async detectedCol() {
-    const client = await this.clientPromise;
-    return client.db("paypilot").collection<DetectedEvent>("detected");
+    return (await this.db()).collection<DetectedEvent>("detected");
   }
 
   private async metaCol() {
-    const client = await this.clientPromise;
-    return client.db("paypilot").collection<ScanMeta & { _key: string }>("meta");
+    return (await this.db()).collection<ScanMeta & { _key: string }>("meta");
   }
 
   async listDetected() {

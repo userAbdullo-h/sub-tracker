@@ -54,7 +54,8 @@ const VENDORS: Array<[RegExp, { domain: string; category: Category }]> = [
   [/1password/i, { domain: "1password.com", category: "Security & Privacy" }],
   [/nordvpn/i, { domain: "nordvpn.com", category: "Security & Privacy" }],
   [/vercel/i, { domain: "vercel.com", category: "Dev & Infra" }],
-  [/mongodb|atlas/i, { domain: "mongodb.com", category: "Dev & Infra" }],
+  // "atlas" alone is too generic (it matched "TEST Atlas Netflix"); require the product name.
+  [/mongodb|mongo atlas/i, { domain: "mongodb.com", category: "Dev & Infra" }],
   [/hetzner/i, { domain: "hetzner.com", category: "Dev & Infra" }],
   [/github/i, { domain: "github.com", category: "Dev & Infra" }],
   [/wordpress/i, { domain: "wordpress.com", category: "Dev & Infra" }],
